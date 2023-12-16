@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "ProjectOtter (Package)": {
+        "commandName": "MsixPackage"
+      },
+      "ProjectOtter (Unpackaged)": {
+        "commandName": "Project"
+      }
+    }
+}

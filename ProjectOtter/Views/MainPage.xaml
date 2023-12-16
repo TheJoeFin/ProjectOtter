@@ -1,0 +1,100 @@
+﻿<Page
+    x:Class="ProjectOtter.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:compression="using:System.IO.Compression"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+    mc:Ignorable="d">
+
+    <Grid x:Name="ContentArea" Padding="4,0,4,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+            Padding="0"
+            Orientation="Horizontal"
+            Spacing="4">
+            <Image Source="/Assets/WindowIcon.ico" Height="24" Width="24" Margin="4,2"/>
+            <TextBlock x:Uid="Main_Title" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="1"
+            Orientation="Horizontal"
+            Spacing="12">
+            <Button
+                x:Name="OpenFileButton"
+                Command="{x:Bind mvm.OpenFileCommand}"
+                Content="Open Bug Report .zip" />
+            <TextBlock
+                x:Name="FileOpenedName"
+                VerticalAlignment="Center"
+                Text="{x:Bind mvm.FileName, Mode=TwoWay}" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="200" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <RelativePanel>
+                <ToggleSwitch
+                    x:Name="HideZeros"
+                    IsOn="{x:Bind mvm.HideEmptyFiles, Mode=TwoWay}"
+                    OffContent="Hide empty"
+                    OnContent="Hide empty" />
+                <TextBox
+                    x:Name="FilterSearchBox"
+                    PlaceholderText="Filter files..."
+                    RelativePanel.AlignRightWithPanel="True"
+                    RelativePanel.RightOf="HideZeros"
+                    Text="{x:Bind mvm.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+            </RelativePanel>
+            <ScrollViewer Grid.Row="1" Grid.Column="0">
+                <ListView
+                    x:Name="ContentsListView"
+                    ItemsSource="{x:Bind mvm.DisplayZipEntries}"
+                    SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="compression:ZipArchiveEntry">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{x:Bind Length}" />
+                                <TextBlock Text="{x:Bind FullName}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </ScrollViewer>
+
+            <TextBlock
+                x:Name="SelectedFileName"
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="12,0,0,0"
+                VerticalAlignment="Center"
+                FontFamily="Cascadia Mono"
+                Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+            <TextBox
+                x:Name="FileContents"
+                Grid.Row="1"
+                Grid.Column="1"
+                AcceptsReturn="True"
+                FontFamily="Cascadia Mono"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
+                TextWrapping="Wrap" />
+        </Grid>
+
+    </Grid>
+</Page>
