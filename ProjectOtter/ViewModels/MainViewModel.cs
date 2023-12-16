@@ -26,7 +26,7 @@ public partial class MainViewModel : ObservableRecipient
     public ObservableCollection<ZipArchiveEntry> DisplayZipEntries { get; set; } = [];
 
     [ObservableProperty]
-    private bool hideEmptyFiles = false;
+    private bool hideEmptyFiles = true;
 
     [ObservableProperty]
     private string filterText = string.Empty;

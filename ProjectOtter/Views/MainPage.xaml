@@ -19,7 +19,11 @@
             Padding="0"
             Orientation="Horizontal"
             Spacing="4">
-            <Image Source="/Assets/WindowIcon.ico" Height="24" Width="24" Margin="4,2"/>
+            <Image
+                Width="24"
+                Height="24"
+                Margin="4,2"
+                Source="/Assets/WindowIcon.ico" />
             <TextBlock x:Uid="Main_Title" VerticalAlignment="Center" />
         </StackPanel>
 
@@ -46,6 +50,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
             <RelativePanel>
@@ -94,6 +99,23 @@
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
                 TextWrapping="Wrap" />
+
+
+            <RelativePanel
+                Grid.Row="2"
+                Height="32"
+                Padding="4"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                <TextBlock
+                    x:Name="StaticCountText"
+                    VerticalAlignment="Center"
+                    Text="Count:" />
+                <TextBlock
+                    x:Name="CountNumberText"
+                    VerticalAlignment="Center"
+                    RelativePanel.RightOf="StaticCountText"
+                    Text="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay}" />
+            </RelativePanel>
         </Grid>
 
     </Grid>
