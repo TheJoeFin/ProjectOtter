@@ -73,10 +73,16 @@
                     SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="compression:ZipArchiveEntry">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{x:Bind Length}" />
-                                <TextBlock Text="{x:Bind FullName}" />
-                            </StackPanel>
+                            <RelativePanel>
+                                <TextBlock
+                                    RelativePanel.AlignLeftWithPanel="True"
+                                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                                    Text="{x:Bind FullName}" />
+                                <TextBlock
+                                    RelativePanel.AlignRightWithPanel="True"
+                                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                                    Text="{x:Bind Length}" />
+                            </RelativePanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -99,7 +105,6 @@
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
                 TextWrapping="Wrap" />
-
 
             <RelativePanel
                 Grid.Row="2"
