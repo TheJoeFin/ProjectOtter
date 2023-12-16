@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO.Compression;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
@@ -81,7 +82,20 @@ public partial class MainViewModel : ObservableRecipient
 
         using var stream = value.Open();
         using var reader = new StreamReader(stream);
-        FileContent = reader.ReadToEnd();
+
+        if (Path.GetExtension(value.FullName) == ".json")
+        {
+            JsonSerializerOptions option = new()
+            {
+                WriteIndented = true,
+            };
+
+            FileContent = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd()), option);
+        }
+        else
+        {
+            FileContent = reader.ReadToEnd();
+        }
     }
 
     partial void OnHideEmptyFilesChanged(bool value) => FilterAndHideEntries();
