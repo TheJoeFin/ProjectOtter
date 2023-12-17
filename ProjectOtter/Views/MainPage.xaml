@@ -111,19 +111,19 @@
                     IsTextSelectionEnabled="True"
                     RelativePanel.AlignVerticalCenterWithPanel="True"
                     Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
-                <Button
-                    x:Name="HomeAppBarButton"
-                    Margin="0,0,8,0"
-                    Command="{x:Bind mvm.ResetToHomeTextCommand}"
-                    RelativePanel.LeftOf="WrapTextToggle">
-                    Start Text
-                </Button>
                 <ToggleSwitch
                     x:Name="WrapTextToggle"
                     OffContent="Wrap"
                     OnContent="Wrap"
-                    RelativePanel.AlignRightWithPanel="True"
-                    RelativePanel.AlignVerticalCenterWithPanel="True" />
+                    RelativePanel.AlignVerticalCenterWithPanel="True"
+                    RelativePanel.LeftOf="HomeAppBarButton" />
+                <Button
+                    x:Name="HomeAppBarButton"
+                    Margin="0,0,8,0"
+                    Command="{x:Bind mvm.ResetToHomeTextCommand}"
+                    RelativePanel.AlignRightWithPanel="True">
+                    Start Text
+                </Button>
             </RelativePanel>
             <TextBox
                 x:Name="FileContents"
@@ -142,6 +142,7 @@
                 Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
                 <TextBlock
                     x:Name="StaticCountText"
+                    Margin="0,0,6,0"
                     VerticalAlignment="Center"
                     Text="Count:" />
                 <TextBlock
