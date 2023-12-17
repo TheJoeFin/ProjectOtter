@@ -39,7 +39,8 @@
             <Button
                 x:Name="OpenFileButton"
                 Command="{x:Bind mvm.OpenFileCommand}"
-                Content="Open Bug Report .zip" />
+                Content="Open Bug Report .zip"
+                Style="{ThemeResource AccentButtonStyle}" />
             <TextBlock
                 x:Name="FileOpenedName"
                 VerticalAlignment="Center"
@@ -107,12 +108,22 @@
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     FontFamily="Cascadia Mono"
+                    IsTextSelectionEnabled="True"
+                    RelativePanel.AlignVerticalCenterWithPanel="True"
                     Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+                <Button
+                    x:Name="HomeAppBarButton"
+                    Margin="0,0,8,0"
+                    Command="{x:Bind mvm.ResetToHomeTextCommand}"
+                    RelativePanel.LeftOf="WrapTextToggle">
+                    Start Text
+                </Button>
                 <ToggleSwitch
                     x:Name="WrapTextToggle"
                     OffContent="Wrap"
                     OnContent="Wrap"
-                    RelativePanel.AlignRightWithPanel="True" />
+                    RelativePanel.AlignRightWithPanel="True"
+                    RelativePanel.AlignVerticalCenterWithPanel="True" />
             </RelativePanel>
             <TextBox
                 x:Name="FileContents"

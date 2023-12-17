@@ -109,8 +109,15 @@ public partial class MainViewModel : ObservableRecipient
     private void ResetCollectionToAll()
     {
         DisplayZipEntries.Clear();
-        foreach(ZipArchiveEntry entry in AllZipArchiveEntries)
+        foreach (ZipArchiveEntry entry in AllZipArchiveEntries)
             DisplayZipEntries.Add(entry);
+    }
+
+    [RelayCommand]
+    private void ResetToHomeText()
+    {
+        SelectedEntry = null;
+        OpenBaselineFiles();
     }
 
     [RelayCommand]
@@ -154,5 +161,50 @@ public partial class MainViewModel : ObservableRecipient
             AllZipArchiveEntries.Add(entry);
         }
         FilterAndHideEntries();
+
+        OpenBaselineFiles();
+    }
+
+    private void OpenBaselineFiles()
+    {
+        FileContent = string.Empty;
+        
+        List<string> filesToRead =
+        [
+            "settings.json",
+            "UpdateState.json",
+            "windows-settings.txt",
+            "windows-version.txt",
+        ];
+
+        foreach (string file in filesToRead)
+        {
+            ZipArchiveEntry? entry = AllZipArchiveEntries.FirstOrDefault(x => x.FullName.Equals(file, StringComparison.InvariantCultureIgnoreCase));
+
+            if (entry is null)
+                continue;
+
+            FileContent += entry.FullName;
+            FileContent += Environment.NewLine;
+            using var stream = entry.Open();
+            using var reader = new StreamReader(stream);
+
+            if (Path.GetExtension(entry.FullName) == ".json")
+            {
+                JsonSerializerOptions option = new()
+                {
+                    WriteIndented = true,
+                };
+
+                FileContent += JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd()), option);
+            }
+            else
+            {
+                FileContent += reader.ReadToEnd();
+            }
+
+            FileContent += Environment.NewLine;
+            FileContent += Environment.NewLine;
+        }
     }
 }
