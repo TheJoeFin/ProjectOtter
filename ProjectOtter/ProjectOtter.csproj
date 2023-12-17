@@ -13,7 +13,7 @@
 	<Nullable>enable</Nullable>
 	<UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
-    <PublishSingleFile>true</PublishSingleFile>
+    <!--<PublishSingleFile>true</PublishSingleFile>-->
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
   </PropertyGroup>
 
