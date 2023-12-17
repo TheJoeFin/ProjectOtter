@@ -1,5 +1,4 @@
 ﻿using Microsoft.UI.Xaml.Controls;
-
 using ProjectOtter.ViewModels;
 
 namespace ProjectOtter.Views;
