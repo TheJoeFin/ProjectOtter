@@ -11,6 +11,8 @@
 
     <Page.Resources>
         <converters:BoolToWordWrapConverter x:Key="BoolToWrapConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisConverter" />
     </Page.Resources>
 
     <Grid x:Name="ContentArea" Padding="4,0,4,0">
@@ -72,9 +74,21 @@
                     RelativePanel.RightOf="HideZeros"
                     Text="{x:Bind mvm.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
             </RelativePanel>
+
+            <Image
+                x:Name="HeroOtter"
+                Grid.Row="1"
+                Grid.Column="0"
+                MaxWidth="128"
+                MaxHeight="128"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Source="/Assets/StoreLogo.Scale-400.png"
+                Visibility="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
             <ScrollViewer Grid.Row="1" Grid.Column="0">
                 <ListView
                     x:Name="ContentsListView"
+                    Background="{ThemeResource CardBackgroundFillColorSecondary}"
                     ItemsSource="{x:Bind mvm.DisplayZipEntries}"
                     SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
                     <ListView.ItemTemplate>
