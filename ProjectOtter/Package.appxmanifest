@@ -11,15 +11,15 @@
   IgnorableNamespaces="uap rescap genTemplate">
 
   <Identity
-    Name="32b35959-3d82-4932-9121-2777ce55f5ea"
-    Publisher="CN=josep"
+    Name="40087JoeFinApps.ProjectOtter"
+    Publisher="CN=153F3B0F-BA3D-4964-8098-71AC78A1DF6A"
     Version="1.0.0.0" />
     
-  <mp:PhoneIdentity PhoneProductId="32b35959-3d82-4932-9121-2777ce55f5ea" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="97d2764e-3b20-48eb-a740-9593c81b46d1" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
     
   <Properties>
-    <DisplayName>ProjectOtter</DisplayName>
-    <PublisherDisplayName>josep</PublisherDisplayName>
+    <DisplayName>Project Otter</DisplayName>
+    <PublisherDisplayName>JoeFinApps</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 

@@ -11,6 +11,7 @@ using ProjectOtter.Models;
 using ProjectOtter.Services;
 using ProjectOtter.ViewModels;
 using ProjectOtter.Views;
+using System.Diagnostics;
 
 namespace ProjectOtter;
 
@@ -44,6 +45,7 @@ public partial class App : Application
 
     public App()
     {
+        UnhandledException += App_UnhandledException;
         InitializeComponent();
 
         Host = Microsoft.Extensions.Hosting.Host.
@@ -77,13 +79,13 @@ public partial class App : Application
         }).
         Build();
 
-        UnhandledException += App_UnhandledException;
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
         // TODO: Log and handle exceptions as appropriate.
         // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
+        Debug.WriteLine($"unhandled Exception by {sender} {e.Exception} {e.Message}");
     }
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)

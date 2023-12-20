@@ -15,11 +15,10 @@ if(Test-Path -Path $BuildPath)
 # Dotnet restore and build
 dotnet publish `
 	   --runtime win-x64 `
-	   --self-contained false `
+	   --self-contained true `
 	   -c Release `
 	   -v minimal `
 	   -p:Platform=x64 `
 	   -p:PublishReadyToRun=true `
-	   -p:PublishSingleFile=true `
 	   -p:Version=$VersionDot `
 

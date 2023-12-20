@@ -22,9 +22,9 @@ public partial class MainViewModel : ObservableRecipient
     [ObservableProperty]
     private ZipArchiveEntry? selectedEntry;
 
-    public List<ZipArchiveEntry> AllZipArchiveEntries { get; set; } = [];
+    public List<ZipArchiveEntry> AllZipArchiveEntries { get; set; } = new();
 
-    public ObservableCollection<ZipArchiveEntry> DisplayZipEntries { get; set; } = [];
+    public ObservableCollection<ZipArchiveEntry> DisplayZipEntries { get; set; } = new();
 
     [ObservableProperty]
     private bool hideEmptyFiles = true;
@@ -169,13 +169,13 @@ public partial class MainViewModel : ObservableRecipient
     {
         FileContent = string.Empty;
         
-        List<string> filesToRead =
-        [
+        List<string> filesToRead = new()
+        {
             "settings.json",
             "UpdateState.json",
             "windows-settings.txt",
             "windows-version.txt",
-        ];
+        };
 
         foreach (string file in filesToRead)
         {
