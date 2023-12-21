@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppDisplayName" xml:space="preserve">
-    <value>ProjectOtter</value>
+    <value>Project Otter</value>
   </data>
   <data name="AppDescription" xml:space="preserve">
-    <value>ProjectOtter</value>
+    <value>Project Otter</value>
   </data>
   <data name="Main_Title.Text" xml:space="preserve">
     <value>Project Otter</value>
@@ -146,13 +146,13 @@
     <value>About this application</value>
   </data>
   <data name="Settings_AboutDescription.Text" xml:space="preserve">
-    <value>TODO: Replace with your app description.</value>
+    <value>Project Otter is a tool for easily viewing zip files.</value>
   </data>
   <data name="SettingsPage_PrivacyTermsLink.Content" xml:space="preserve">
     <value>Privacy Statement</value>
   </data>
   <data name="SettingsPage_PrivacyTermsLink.NavigateUri" xml:space="preserve">
-    <value>https://YourPrivacyUrlGoesHere/</value>
+    <value>https://github.com/TheJoeFin/ProjectOtter/blob/master/PRIVACY</value>
   </data>
   <data name="Settings_Title.Text" xml:space="preserve">
     <value>Settings</value>
