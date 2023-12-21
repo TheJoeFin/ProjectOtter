@@ -1,10 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using System.IO.Compression;
-using System.Text.Json;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
+using ProjectOtter.Contracts.Services;
 using ProjectOtter.Helpers;
+using ProjectOtter.Services;
+using ProjectOtter.Views;
+using System.Collections.ObjectModel;
+using System.IO.Compression;
+using System.Text.Json;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -34,10 +37,17 @@ public partial class MainViewModel : ObservableRecipient
 
     private readonly DispatcherTimer debounceTimer = new();
 
-    public MainViewModel()
+    public INavigationService NavigationService
+    {
+        get;
+    }
+
+    public MainViewModel(INavigationService navigationService)
     {
         debounceTimer.Interval = TimeSpan.FromMilliseconds(200);
         debounceTimer.Tick += DebounceTimer_Tick;
+
+        NavigationService = navigationService;
     }
 
     private void DebounceTimer_Tick(object? sender, object e)
@@ -114,6 +124,12 @@ public partial class MainViewModel : ObservableRecipient
     }
 
     [RelayCommand]
+    private void GoToSettingsPage()
+    {
+        NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
+    }
+
+    [RelayCommand]
     private void ResetToHomeText()
     {
         SelectedEntry = null;
@@ -168,7 +184,7 @@ public partial class MainViewModel : ObservableRecipient
     private void OpenBaselineFiles()
     {
         FileContent = string.Empty;
-        
+
         List<string> filesToRead = new()
         {
             "settings.json",

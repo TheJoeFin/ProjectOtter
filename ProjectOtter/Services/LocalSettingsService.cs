@@ -54,7 +54,14 @@ public class LocalSettingsService : ILocalSettingsService
         {
             if (ApplicationData.Current.LocalSettings.Values.TryGetValue(key, out var obj))
             {
-                return await Json.ToObjectAsync<T>((string)obj);
+                try
+                {
+                    return await Json.ToObjectAsync<T>((string)obj);
+                }
+                catch
+                {
+                    return default;
+                }
             }
         }
         else
@@ -63,7 +70,15 @@ public class LocalSettingsService : ILocalSettingsService
 
             if (_settings != null && _settings.TryGetValue(key, out var obj))
             {
-                return await Json.ToObjectAsync<T>((string)obj);
+                try
+                {
+                    return await Json.ToObjectAsync<T>((string)obj);
+
+                }
+                catch
+                {
+                    return default;
+                }
             }
         }
 

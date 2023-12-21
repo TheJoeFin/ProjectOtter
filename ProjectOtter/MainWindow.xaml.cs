@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Windowing;
 using ProjectOtter.Helpers;
+using ProjectOtter.ViewModels;
 using Windows.UI.ViewManagement;
 
 namespace ProjectOtter;
@@ -17,7 +18,6 @@ public sealed partial class MainWindow : WindowEx
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets/WindowIcon.ico"));
         Content = null;
         Title = "AppDisplayName".GetLocalized();
-        ExtendsContentIntoTitleBar = true;        
 
         // Theme change code picked from https://github.com/microsoft/WinUI-Gallery/pull/1239
         dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
