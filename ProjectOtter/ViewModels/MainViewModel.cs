@@ -3,8 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Helpers;
-using ProjectOtter.Services;
-using ProjectOtter.Views;
 using System.Collections.ObjectModel;
 using System.IO.Compression;
 using System.Text.Json;
@@ -17,7 +15,7 @@ namespace ProjectOtter.ViewModels;
 public partial class MainViewModel : ObservableRecipient
 {
     [ObservableProperty]
-    private string fileName = "no bug report selected";
+    private string fileName = "no .zip selected";
 
     [ObservableProperty]
     private string fileContent = string.Empty;
