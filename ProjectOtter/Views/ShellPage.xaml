@@ -20,19 +20,18 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Button
+        <AppBarButton
+            Width="40"
+            Height="40"
             Canvas.ZIndex="0"
             Command="{x:Bind ViewModel.BackCommand}"
+            Icon="Back"
             IsEnabled="{x:Bind ViewModel.IsBackEnabled, Mode=OneWay}"
-            Style="{ThemeResource DefaultButtonStyle}">
-            <Viewbox Height="14">
-                <SymbolIcon Symbol="Back" />
-            </Viewbox>
-        </Button>
+            Style="{StaticResource NavigationBackButtonSmallStyle}" />
         <StackPanel
             x:Name="AppTitleBar"
             Height="40"
-            Margin="46,0,0,0"
+            Margin="40,0,0,0"
             Padding="0"
             Canvas.ZIndex="1"
             IsHitTestVisible="True"
