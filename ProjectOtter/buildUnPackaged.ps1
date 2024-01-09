@@ -1,10 +1,8 @@
 $BuildPath = "$PSScriptRoot\bld\x64"
-$BuildPathSC = "$PSScriptRoot\bld\x64\Project-Otter-Self-Contained"
 $Version = Get-Date -Format "yyyy-MM-dd" # 2020-11-1
 $VersionDot = $Version -replace '-','.'
 $Project = "ProjectOtter"
-$Archive = "$BuildPath\$Project-$Version.zip"
-$ArchiveSC = "$BuildPath\$Project-Self-Contained-$Version.zip"
+$Archive = "$BuildPath\..\$Project-$Version.zip"
 
 # Clean up
 if(Test-Path -Path $BuildPath)
@@ -21,4 +19,7 @@ dotnet publish `
 	   -p:Platform=x64 `
 	   -p:PublishReadyToRun=true `
 	   -p:Version=$VersionDot `
+	   -o $BuildPath `
 
+# Archive Build
+Compress-Archive -Path "$BuildPath" -DestinationPath $Archive
