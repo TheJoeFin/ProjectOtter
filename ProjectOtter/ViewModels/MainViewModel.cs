@@ -3,11 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Helpers;
+using System;
 using System.Collections.ObjectModel;
 using System.IO.Compression;
 using System.Text.Json;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.System;
 using WinRT.Interop;
 
 namespace ProjectOtter.ViewModels;
@@ -22,6 +24,65 @@ public partial class MainViewModel : ObservableRecipient
 
     [ObservableProperty]
     private ZipArchiveEntry? selectedEntry;
+
+    [ObservableProperty]
+    private bool isToolsPaneOpen = false;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(KeyAsVirtualKey))]
+    private int keyAsInt = 0;
+
+    public string KeyAsVirtualKey
+    {
+        get
+        {
+            bool canParse = Enum.TryParse(KeyAsInt.ToString(), out VirtualKey vKey);
+         
+            if (canParse)
+                return vKey.ToString();
+
+            return "Unknown";
+        }
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DateTimeFromTimestamp))]
+    private int timeStamp = 0;
+
+    public string DateTimeFromTimestamp => DateTimeOffset.FromUnixTimeSeconds(TimeStamp).ToString("yyyy MMM dd ddd HH:mm");
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(WindowsVersion))]
+    private int buildNumber = 0;
+
+    public string WindowsVersion
+    {
+        get
+        {
+            return BuildNumber switch
+            {
+                0 => "Windows Version",
+                10240 => "Windows 10 version 1507",
+                10586 => "Windows 10 version 1511",
+                14393 => "Windows 10 version 1607",
+                15063 => "Windows 10 version 1703",
+                16299 => "Windows 10 version 1709",
+                17134 => "Windows 10 version 1803",
+                17763 => "Windows 10 version 1809",
+                18362 => "Windows 10 version 1903",
+                18363 => "Windows 10 version 1909",
+                19041 => "Windows 10 version 2004",
+                19042 => "Windows 10 version 20H2",
+                19043 => "Windows 10 version 21H1",
+                19044 => "Windows 10 version 21H2",
+                19045 => "Windows 10 version 22H2",
+                22000 => "Windows 11 version 21H2",
+                22621 => "Windows 11 version 22H2",
+                22631 => "Windows 11 version 23H2",
+                _ => "unknown",
+            };
+        }
+    }
 
     public List<ZipArchiveEntry> AllZipArchiveEntries { get; set; } = new();
 
@@ -120,6 +181,9 @@ public partial class MainViewModel : ObservableRecipient
         foreach (ZipArchiveEntry entry in AllZipArchiveEntries)
             DisplayZipEntries.Add(entry);
     }
+
+    [RelayCommand]
+    private void ToggleIsPaneOpen() => IsToolsPaneOpen = !IsToolsPaneOpen;
 
     [RelayCommand]
     private void GoToSettingsPage()

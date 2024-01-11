@@ -15,165 +15,232 @@
         <converters:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisConverter" />
     </Page.Resources>
 
-    <Grid x:Name="ContentArea" Padding="4,0,4,0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <SplitView
+        DisplayMode="Inline"
+        IsPaneOpen="{x:Bind mvm.IsToolsPaneOpen, Mode=TwoWay}"
+        OpenPaneLength="340"
+        PanePlacement="Right">
+        <SplitView.Content>
+            <Grid x:Name="ContentArea" Padding="4,0,4,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-        <StackPanel
-            Grid.Row="0"
-            Orientation="Horizontal"
-            Spacing="12">
-            <Button
-                x:Name="OpenFileButton"
-                Command="{x:Bind mvm.OpenFileCommand}"
-                Content="Open .zip"
-                Style="{ThemeResource AccentButtonStyle}" />
-            <TextBlock
-                x:Name="FileOpenedName"
-                VerticalAlignment="Center"
-                Text="{x:Bind mvm.FileName, Mode=TwoWay}" />
-        </StackPanel>
-
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition
-                    Width="*"
-                    MinWidth="200"
-                    MaxWidth="600" />
-                <ColumnDefinition Width="2*" />
-            </Grid.ColumnDefinitions>
-
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
-
-            <RelativePanel>
-                <ToggleSwitch
-                    x:Name="HideZeros"
-                    IsOn="{x:Bind mvm.HideEmptyFiles, Mode=TwoWay}"
-                    OffContent="Hide empty"
-                    OnContent="Hide empty" />
-                <TextBox
-                    x:Name="FilterSearchBox"
-                    PlaceholderText="Filter files..."
-                    RelativePanel.AlignRightWithPanel="True"
-                    RelativePanel.RightOf="HideZeros"
-                    Text="{x:Bind mvm.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
-                    <TextBox.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="F" Modifiers="Control" />
-                    </TextBox.KeyboardAccelerators>
-                </TextBox>
-            </RelativePanel>
-
-            <Image
-                x:Name="HeroOtter"
-                Grid.Row="1"
-                Grid.Column="0"
-                MaxWidth="128"
-                MaxHeight="128"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Source="/Assets/StoreLogo.Scale-400.png"
-                Visibility="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
-            <ProgressRing
-                Grid.Row="1"
-                Grid.Column="0"
-                Width="200"
-                Height="200"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                IsActive="{x:Bind mvm.OpenFileCommand.IsRunning, Mode=OneWay}" />
-            <ScrollViewer Grid.Row="1" Grid.Column="0">
-                <ListView
-                    x:Name="ContentsListView"
-                    Background="{ThemeResource CardBackgroundFillColorSecondary}"
-                    ItemsSource="{x:Bind mvm.DisplayZipEntries}"
-                    SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="compression:ZipArchiveEntry">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    x:Name="FullNameText"
-                                    Grid.Column="0"
-                                    Margin="0,0,6,0"
-                                    Text="{x:Bind FullName}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <TextBlock
-                                    x:Name="LengthText"
-                                    Grid.Column="1"
-                                    Text="{x:Bind Length}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </ScrollViewer>
-
-            <RelativePanel Grid.Column="1">
-                <TextBlock
-                    x:Name="SelectedFileName"
+                <StackPanel
                     Grid.Row="0"
-                    Grid.Column="1"
-                    Margin="12,0,0,0"
-                    VerticalAlignment="Center"
-                    FontFamily="Cascadia Mono"
-                    IsTextSelectionEnabled="True"
-                    RelativePanel.AlignVerticalCenterWithPanel="True"
-                    Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
-                <ToggleSwitch
-                    x:Name="WrapTextToggle"
-                    OffContent="Wrap"
-                    OnContent="Wrap"
-                    RelativePanel.AlignVerticalCenterWithPanel="True"
-                    RelativePanel.LeftOf="HomeAppBarButton" />
-                <Button
-                    x:Name="HomeAppBarButton"
-                    Margin="0,0,8,0"
-                    Command="{x:Bind mvm.ResetToHomeTextCommand}"
-                    RelativePanel.LeftOf="SettingsButton">
-                    Starting Text
-                </Button>
-                <Button
-                    x:Name="SettingsButton"
-                    Command="{x:Bind mvm.GoToSettingsPageCommand}"
-                    RelativePanel.AlignRightWithPanel="True">
-                    <SymbolIcon Symbol="Setting" />
-                </Button>
-            </RelativePanel>
-            <TextBox
-                x:Name="FileContents"
-                Grid.Row="1"
-                Grid.Column="1"
-                AcceptsReturn="True"
-                FontFamily="Cascadia Mono"
-                ScrollViewer.VerticalScrollBarVisibility="Auto"
-                Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
-                TextWrapping="{x:Bind WrapTextToggle.IsOn, Converter={StaticResource BoolToWrapConverter}, Mode=OneWay}" />
+                    Orientation="Horizontal"
+                    Spacing="12">
+                    <Button
+                        x:Name="OpenFileButton"
+                        Command="{x:Bind mvm.OpenFileCommand}"
+                        Content="Open .zip"
+                        Style="{ThemeResource AccentButtonStyle}" />
+                    <TextBlock
+                        x:Name="FileOpenedName"
+                        VerticalAlignment="Center"
+                        Text="{x:Bind mvm.FileName, Mode=TwoWay}" />
+                </StackPanel>
 
-            <RelativePanel
-                Grid.Row="2"
-                Height="32"
-                Padding="4"
-                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
-                <TextBlock
-                    x:Name="StaticCountText"
-                    Margin="0,0,6,0"
-                    VerticalAlignment="Center"
-                    Text="Count:" />
-                <TextBlock
-                    x:Name="CountNumberText"
-                    VerticalAlignment="Center"
-                    RelativePanel.RightOf="StaticCountText"
-                    Text="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay}" />
-            </RelativePanel>
-        </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition
+                            Width="*"
+                            MinWidth="200"
+                            MaxWidth="600" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
 
-    </Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+
+                    <RelativePanel>
+                        <ToggleSwitch
+                            x:Name="HideZeros"
+                            IsOn="{x:Bind mvm.HideEmptyFiles, Mode=TwoWay}"
+                            OffContent="Hide empty"
+                            OnContent="Hide empty" />
+                        <TextBox
+                            x:Name="FilterSearchBox"
+                            PlaceholderText="Filter files..."
+                            RelativePanel.AlignRightWithPanel="True"
+                            RelativePanel.RightOf="HideZeros"
+                            Text="{x:Bind mvm.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                            <TextBox.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="F" Modifiers="Control" />
+                            </TextBox.KeyboardAccelerators>
+                        </TextBox>
+                    </RelativePanel>
+
+                    <Image
+                        x:Name="HeroOtter"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        MaxWidth="128"
+                        MaxHeight="128"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Source="/Assets/StoreLogo.Scale-400.png"
+                        Visibility="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
+                    <ProgressRing
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Width="200"
+                        Height="200"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsActive="{x:Bind mvm.OpenFileCommand.IsRunning, Mode=OneWay}" />
+                    <ScrollViewer Grid.Row="1" Grid.Column="0">
+                        <ListView
+                            x:Name="ContentsListView"
+                            Background="{ThemeResource CardBackgroundFillColorSecondary}"
+                            ItemsSource="{x:Bind mvm.DisplayZipEntries}"
+                            SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="compression:ZipArchiveEntry">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            x:Name="FullNameText"
+                                            Grid.Column="0"
+                                            Margin="0,0,6,0"
+                                            Text="{x:Bind FullName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            x:Name="LengthText"
+                                            Grid.Column="1"
+                                            Text="{x:Bind Length}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+
+                    <RelativePanel Grid.Column="1">
+                        <TextBlock
+                            x:Name="SelectedFileName"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Cascadia Mono"
+                            IsTextSelectionEnabled="True"
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+                        <ToggleSwitch
+                            x:Name="WrapTextToggle"
+                            OffContent="Wrap"
+                            OnContent="Wrap"
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            RelativePanel.LeftOf="HomeAppBarButton" />
+                        <Button
+                            x:Name="HomeAppBarButton"
+                            Margin="0,0,20,0"
+                            Command="{x:Bind mvm.ResetToHomeTextCommand}"
+                            RelativePanel.LeftOf="SettingsButton">
+                            Starting Text
+                        </Button>
+                        <Button
+                            x:Name="SettingsButton"
+                            Margin="0,0,20,0"
+                            Command="{x:Bind mvm.GoToSettingsPageCommand}"
+                            RelativePanel.LeftOf="ToolPaneButton">
+                            <SymbolIcon Symbol="Setting" />
+                        </Button>
+                        <Button
+                            x:Name="ToolPaneButton"
+                            Command="{x:Bind mvm.ToggleIsPaneOpenCommand}"
+                            RelativePanel.AlignRightWithPanel="True">
+                            <SymbolIcon Symbol="Repair" />
+                        </Button>
+                    </RelativePanel>
+                    <TextBox
+                        x:Name="FileContents"
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        AcceptsReturn="True"
+                        FontFamily="Cascadia Mono"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
+                        TextWrapping="{x:Bind WrapTextToggle.IsOn, Converter={StaticResource BoolToWrapConverter}, Mode=OneWay}" />
+
+                    <RelativePanel
+                        Grid.Row="2"
+                        Height="32"
+                        Padding="4"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}">
+                        <TextBlock
+                            x:Name="StaticCountText"
+                            Margin="0,0,6,0"
+                            VerticalAlignment="Center"
+                            Text="Count:" />
+                        <TextBlock
+                            x:Name="CountNumberText"
+                            VerticalAlignment="Center"
+                            RelativePanel.RightOf="StaticCountText"
+                            Text="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay}" />
+                    </RelativePanel>
+                </Grid>
+
+            </Grid>
+        </SplitView.Content>
+        <SplitView.Pane>
+            <StackPanel
+                Padding="16"
+                Orientation="Vertical"
+                Spacing="24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource SubheaderTextBlockStyle}" Text="Tools" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="0"
+                        HorizontalAlignment="Right"
+                        Command="{x:Bind mvm.ToggleIsPaneOpenCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="Close" />
+                            <SymbolIcon Symbol="ClosePane" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <StackPanel Orientation="Vertical" Spacing="12">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Int to Key" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <NumberBox
+                            Width="160"
+                            Maximum="1000"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Inline"
+                            Value="{x:Bind mvm.KeyAsInt, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                        <TextBlock VerticalAlignment="Center" Text="{x:Bind mvm.KeyAsVirtualKey, Mode=OneWay}" />
+                    </StackPanel>
+                    <HyperlinkButton Content="WinForms keys Docs..." NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.keys" />
+                    <HyperlinkButton Content="VirtualKeys Docs..." NavigateUri="https://learn.microsoft.com/en-us/uwp/api/windows.system.virtualkey" />
+                </StackPanel>
+                <StackPanel Orientation="Vertical" Spacing="12">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Timestamp to human time" />
+                    <NumberBox SpinButtonPlacementMode="Inline" Value="{x:Bind mvm.TimeStamp, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                    <TextBlock Text="{x:Bind mvm.DateTimeFromTimestamp, Mode=OneWay}" />
+                </StackPanel>
+                <StackPanel Orientation="Vertical" Spacing="12">
+                    <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Build number to Windows Version" />
+                    <NumberBox
+                        Minimum="0"
+                        SpinButtonPlacementMode="Inline"
+                        Value="{x:Bind mvm.BuildNumber, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                    <TextBlock Text="{x:Bind mvm.WindowsVersion, Mode=OneWay}" />
+                    <HyperlinkButton Content="More on Wikipedia..." NavigateUri="https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions" />
+                </StackPanel>
+            </StackPanel>
+        </SplitView.Pane>
+    </SplitView>
 </Page>
