@@ -32,6 +32,18 @@ public partial class MainViewModel : ObservableRecipient
     [NotifyPropertyChangedFor(nameof(KeyAsVirtualKey))]
     private int keyAsInt = 0;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GitHubIssueURL))]
+    [NotifyPropertyChangedFor(nameof(IssueNumberText))]
+    private int gitHubIssueNumber = 1;
+
+    [ObservableProperty]
+    private Version powerToysVersion = new(0, 0, 0, 0);
+
+    public Uri GitHubIssueURL => new($"https://github.com/microsoft/PowerToys/issues/{GitHubIssueNumber}");
+
+    public string IssueNumberText => $"Issue #{GitHubIssueNumber}";
+
     public string KeyAsVirtualKey
     {
         get
@@ -183,6 +195,9 @@ public partial class MainViewModel : ObservableRecipient
     }
 
     [RelayCommand]
+    private void FilterOnVersion() => FilterText = PowerToysVersion.ToString();
+
+    [RelayCommand]
     private void ToggleIsPaneOpen() => IsToolsPaneOpen = !IsToolsPaneOpen;
 
     [RelayCommand]
@@ -283,6 +298,39 @@ public partial class MainViewModel : ObservableRecipient
 
             FileContent += Environment.NewLine;
             FileContent += Environment.NewLine;
+        }
+
+        var fileContentLines = FileContent.Split(Environment.NewLine);
+        foreach (var line in fileContentLines)
+        {
+            if (line.Contains("githubUpdateLastCheckedDate", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var timeStampString = line.Split(":")[1].Trim();
+                // remove quotes and comma
+                timeStampString = timeStampString[1..^2];
+                if (int.TryParse(timeStampString, out int timeStamp))
+                {
+                    TimeStamp = timeStamp;
+                }
+            }
+            else if (line.Contains("BuildNumber", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var buildNumberString = line.Split(":")[1].Trim();
+                if (int.TryParse(buildNumberString, out int buildNumber))
+                {
+                    BuildNumber = buildNumber;
+                }
+            }
+            else if (line.Contains("powertoys_version", StringComparison.InvariantCulture))
+            {
+                var versionString = line.Split(":")[1].Trim();
+                // remove version and comma
+                versionString = versionString[2..^1];
+                if (Version.TryParse(versionString, out Version? version) && version is not null)
+                {
+                    PowerToysVersion = version;
+                }
+            }
         }
     }
 }
