@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Helpers;
-using System;
+using ProjectOtter.Models;
 using System.Collections.ObjectModel;
 using System.IO.Compression;
 using System.Text.Json;
@@ -16,6 +16,13 @@ namespace ProjectOtter.ViewModels;
 
 public partial class MainViewModel : ObservableRecipient
 {
+    private OtterFile otterFile = new();
+    private string zipPath = string.Empty;
+    private ZipArchive? openedZip = null;
+
+    [ObservableProperty]
+    private string friendlyName = string.Empty;
+
     [ObservableProperty]
     private string fileName = "no .zip selected";
 
@@ -49,7 +56,7 @@ public partial class MainViewModel : ObservableRecipient
         get
         {
             bool canParse = Enum.TryParse(KeyAsInt.ToString(), out VirtualKey vKey);
-         
+
             if (canParse)
                 return vKey.ToString();
 
@@ -101,12 +108,13 @@ public partial class MainViewModel : ObservableRecipient
     public ObservableCollection<ZipArchiveEntry> DisplayZipEntries { get; set; } = new();
 
     [ObservableProperty]
-    private bool hideEmptyFiles = true;
+    private bool hideEmptyFiles = false;
 
     [ObservableProperty]
     private string filterText = string.Empty;
 
     private readonly DispatcherTimer debounceTimer = new();
+    private readonly DispatcherTimer otterFileDebounceTimer = new();
 
     public INavigationService NavigationService
     {
@@ -118,7 +126,17 @@ public partial class MainViewModel : ObservableRecipient
         debounceTimer.Interval = TimeSpan.FromMilliseconds(200);
         debounceTimer.Tick += DebounceTimer_Tick;
 
+        otterFileDebounceTimer.Interval = TimeSpan.FromMilliseconds(500);
+        otterFileDebounceTimer.Tick += OtterFileDebounceTimer_Tick; ;
+
         NavigationService = navigationService;
+    }
+
+    private void OtterFileDebounceTimer_Tick(object? sender, object e)
+    {
+        otterFileDebounceTimer.Stop();
+
+        OtterFileValueChanged();
     }
 
     private void DebounceTimer_Tick(object? sender, object e)
@@ -142,8 +160,8 @@ public partial class MainViewModel : ObservableRecipient
         {
             bool shouldAdd = true;
 
-            if (HideEmptyFiles && entry.Length == 0)
-                shouldAdd = false;
+            // if (HideEmptyFiles && entry.CompressedLength == 0)
+            //     shouldAdd = false;
 
             if (!string.IsNullOrEmpty(FilterText) && !entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase))
                 shouldAdd = false;
@@ -151,6 +169,35 @@ public partial class MainViewModel : ObservableRecipient
             if (shouldAdd)
                 DisplayZipEntries.Add(entry);
         }
+    }
+
+    private async void OtterFileValueChanged()
+    {
+        otterFile.FriendlyName = FriendlyName;
+        otterFile.GitHubIssueNumber = GitHubIssueNumber;
+
+        if (string.IsNullOrWhiteSpace(zipPath) || openedZip is null)
+            return;
+
+        ZipArchiveEntry? entry = openedZip.GetEntry("otterfile.json");
+        entry ??= openedZip.CreateEntry("otterfile.json");
+
+        string otterFileAsJson = JsonSerializer.Serialize(otterFile);
+        using var stream = entry.Open();
+        using StreamWriter writer = new(stream);
+        await writer.WriteAsync(otterFileAsJson);
+    }
+
+    partial void OnFriendlyNameChanged(string value)
+    {
+        otterFileDebounceTimer.Stop();
+        otterFileDebounceTimer.Start();
+    }
+
+    partial void OnGitHubIssueNumberChanged(int value)
+    {
+        otterFileDebounceTimer.Stop();
+        otterFileDebounceTimer.Start();
     }
 
     partial void OnSelectedEntryChanged(ZipArchiveEntry? value)
@@ -239,7 +286,8 @@ public partial class MainViewModel : ObservableRecipient
         if (Path.GetExtension(file.Path) != ".zip")
             return;
 
-        ZipArchive zip = ZipFile.OpenRead(file.Path);
+        zipPath = file.Path;
+        ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
 
         if (zip.Entries.Count > 0)
         {
@@ -268,11 +316,28 @@ public partial class MainViewModel : ObservableRecipient
             "UpdateState.json",
             "windows-settings.txt",
             "windows-version.txt",
+            "otterfile.json",
         };
 
         foreach (string file in filesToRead)
         {
             ZipArchiveEntry? entry = AllZipArchiveEntries.FirstOrDefault(x => x.FullName.Equals(file, StringComparison.InvariantCultureIgnoreCase));
+
+            if (file == "otterfile.json")
+            {
+                if (entry is null)
+                {
+                    otterFile = new();
+                    continue;
+                }
+
+                using var otterstream = entry.Open();
+                using var otterreader = new StreamReader(otterstream);
+                otterFile = JsonSerializer.Deserialize<OtterFile>(otterreader.ReadToEnd()) ?? new();
+                FriendlyName = otterFile.FriendlyName;
+                GitHubIssueNumber = otterFile.GitHubIssueNumber;
+                continue;
+            }
 
             if (entry is null)
                 continue;
