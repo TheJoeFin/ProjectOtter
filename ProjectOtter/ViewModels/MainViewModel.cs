@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
 using ProjectOtter.Contracts.Services;
+using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
 using System.Collections.ObjectModel;
@@ -14,11 +15,11 @@ using WinRT.Interop;
 
 namespace ProjectOtter.ViewModels;
 
-public partial class MainViewModel : ObservableRecipient
+public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
     private OtterFile otterFile = new();
     private string zipPath = string.Empty;
-    private ZipArchive? openedZip = null;
+    private readonly ZipArchive? openedZip = null;
 
     [ObservableProperty]
     private string friendlyName = string.Empty;
@@ -103,9 +104,14 @@ public partial class MainViewModel : ObservableRecipient
         }
     }
 
+    public ObservableCollection<UtilityFilter> UtilitiesFilter { get; set; } = new();
+
     public List<ZipEntryItem> AllZipArchiveEntries { get; set; } = new();
 
     public ObservableCollection<ZipEntryItem> DisplayZipEntries { get; set; } = new();
+
+    [ObservableProperty]
+    private bool filterOnUtility = false;
 
     [ObservableProperty]
     private bool hideEmptyFiles = true;
@@ -147,6 +153,11 @@ public partial class MainViewModel : ObservableRecipient
         FilterAndHideEntries();
     }
 
+    partial void OnFilterOnUtilityChanged(bool value)
+    {
+        FilterAndHideEntries();
+    }
+
     private void FilterAndHideEntries()
     {
         DisplayZipEntries.Clear();
@@ -160,11 +171,27 @@ public partial class MainViewModel : ObservableRecipient
         {
             bool shouldAdd = true;
 
+            if (FilterOnUtility)
+            {
+                bool isInFilter = false;
+                foreach (UtilityFilter utilityFilter in UtilitiesFilter)
+                {
+                    if (utilityFilter.IsFiltering && entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        isInFilter = true;
+                        break;
+                    }
+                }
+
+                shouldAdd = isInFilter;
+            }
+
             if (HideEmptyFiles && entry.IsEmpty)
                 shouldAdd = false;
 
             if (!string.IsNullOrEmpty(FilterText) && !entry.Entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase))
                 shouldAdd = false;
+
 
             if (shouldAdd)
                 DisplayZipEntries.Add(entry);
@@ -343,6 +370,11 @@ public partial class MainViewModel : ObservableRecipient
             if (entry is null)
                 continue;
 
+            if (file == "settings.json")
+            {
+                ReadSettingsFile(entry);
+            }
+
             FileContent += entry.Entry.FullName;
             FileContent += Environment.NewLine;
             using var stream = entry.Entry.Open();
@@ -398,5 +430,37 @@ public partial class MainViewModel : ObservableRecipient
                 }
             }
         }
+    }
+
+    private void ReadSettingsFile(ZipEntryItem entry)
+    {
+        using var stream = entry.Entry.Open();
+        using var reader = new StreamReader(stream);
+        string content = reader.ReadToEnd();
+
+        PowerToysSettings? settings = JsonSerializer.Deserialize<PowerToysSettings>(content);
+
+        if (settings is null)
+            return;
+
+        foreach (var utility in settings.enabled)
+        {
+            UtilityFilter utilityFilter = new()
+            {
+                UtilityName = utility.Key,
+                IsFiltering = false,
+            };
+            UtilitiesFilter.Add(utilityFilter);
+        }
+    }
+
+    public void OnNavigatedTo(object parameter)
+    {
+        
+    }
+
+    public void OnNavigatedFrom()
+    {
+        openedZip?.Dispose();
     }
 }
