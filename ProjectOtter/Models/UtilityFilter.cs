@@ -1,7 +1,26 @@
-﻿namespace ProjectOtter.Models;
+﻿using Microsoft.UI.Xaml;
 
-public class UtilityFilter
+namespace ProjectOtter.Models;
+
+public record UtilityFilter
 {
     public string UtilityName { get; set; } = string.Empty;
-    public bool IsFiltering { get; set; }
+
+    private bool isFiltering;
+
+    public bool IsFiltering
+    {
+        get { return isFiltering; }
+        set
+        {
+            if (isFiltering = value)
+                return;
+
+            isFiltering = value;
+            FilteringChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public event EventHandler? FilteringChanged;
+
 }

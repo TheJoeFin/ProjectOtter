@@ -17,9 +17,10 @@ namespace ProjectOtter.ViewModels;
 
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
+    private string otterFileName = "otterFile.json";
     private OtterFile otterFile = new();
     private string zipPath = string.Empty;
-    private readonly ZipArchive? openedZip = null;
+    private bool loadingSettingsFile = false;
 
     [ObservableProperty]
     private string friendlyName = string.Empty;
@@ -176,7 +177,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 bool isInFilter = false;
                 foreach (UtilityFilter utilityFilter in UtilitiesFilter)
                 {
-                    if (utilityFilter.IsFiltering && entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
+                    if (!utilityFilter.IsFiltering)
+                        continue;
+
+                    if (entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
                     {
                         isInFilter = true;
                         break;
@@ -203,11 +207,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFile.FriendlyName = FriendlyName;
         otterFile.GitHubIssueNumber = GitHubIssueNumber;
 
-        if (string.IsNullOrWhiteSpace(zipPath) || openedZip is null)
+        List<string> utilitiesWithFilteringOn = UtilitiesFilter
+            .Where(f => f.IsFiltering == true)
+            .Select(filter => filter.UtilityName)
+            .ToList();
+
+        otterFile.RelatedUtilities = utilitiesWithFilteringOn;
+        otterFile.FilteringText = FilterText;
+
+        if (string.IsNullOrWhiteSpace(zipPath))
             return;
 
-        ZipArchiveEntry? entry = openedZip.GetEntry("otterfile.json");
-        entry ??= openedZip.CreateEntry("otterfile.json");
+        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
+        ZipArchiveEntry? entry = zip.GetEntry(otterFileName);
+        entry ??= zip.CreateEntry(otterFileName);
+        entry.Delete();
+        entry = zip.CreateEntry(otterFileName);
 
         string otterFileAsJson = JsonSerializer.Serialize(otterFile);
         using var stream = entry.Open();
@@ -234,8 +249,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             FileContent = string.Empty;
             return;
         }
+        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+        ZipArchiveEntry? entry = zip.GetEntry(value.Entry.FullName);
 
-        using var stream = value.Entry.Open();
+        if (entry is null)
+            return;
+
+        using var stream = entry.Open();
         using var reader = new StreamReader(stream);
 
         if (value.IsJSON)
@@ -259,6 +279,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         debounceTimer.Stop();
         debounceTimer.Start();
+
+        otterFileDebounceTimer.Stop();
+        otterFileDebounceTimer.Start();
     }
 
     private void ResetCollectionToAll()
@@ -314,7 +337,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
 
         zipPath = file.Path;
-        ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
+        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
 
         if (zip.Entries.Count > 0)
         {
@@ -344,14 +367,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             "UpdateState.json",
             "windows-settings.txt",
             "windows-version.txt",
-            "otterfile.json",
+            "otterFile.json",
         };
 
         foreach (string file in filesToRead)
         {
             ZipEntryItem? entry = AllZipArchiveEntries.FirstOrDefault(x => x.Entry.FullName.Equals(file, StringComparison.InvariantCultureIgnoreCase));
 
-            if (file == "otterfile.json")
+            if (file == "otterFile.json")
             {
                 if (entry is null)
                 {
@@ -359,11 +382,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     continue;
                 }
 
-                using var otterstream = entry.Entry.Open();
-                using var otterreader = new StreamReader(otterstream);
-                otterFile = JsonSerializer.Deserialize<OtterFile>(otterreader.ReadToEnd()) ?? new();
-                FriendlyName = otterFile.FriendlyName;
-                GitHubIssueNumber = otterFile.GitHubIssueNumber;
+                using var otterStream = entry.Entry.Open();
+                using var otterReader = new StreamReader(otterStream);
+                string otterContents = otterReader.ReadToEnd();
+
+                try
+                {
+                    otterFile = JsonSerializer.Deserialize<OtterFile>(otterContents) ?? new();
+                    FriendlyName = otterFile.FriendlyName;
+                    GitHubIssueNumber = otterFile.GitHubIssueNumber;
+                    FilterText = otterFile.FilteringText;
+                }
+                catch
+                {
+                    // failed to read the OtterFile
+                }
                 continue;
             }
 
@@ -434,6 +467,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void ReadSettingsFile(ZipEntryItem entry)
     {
+        loadingSettingsFile = true;
+
         using var stream = entry.Entry.Open();
         using var reader = new StreamReader(stream);
         string content = reader.ReadToEnd();
@@ -450,8 +485,27 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 UtilityName = utility.Key,
                 IsFiltering = false,
             };
+
+            bool isListedOnOtterFile = otterFile.RelatedUtilities.Contains(utility.Key);
+            utilityFilter.IsFiltering = isListedOnOtterFile;
+
+            utilityFilter.FilteringChanged += UtilityFilter_FilteringChanged;
             UtilitiesFilter.Add(utilityFilter);
         }
+
+        loadingSettingsFile = false;
+    }
+
+    private void UtilityFilter_FilteringChanged(object? sender, EventArgs e)
+    {
+        if (!FilterOnUtility)
+            return;
+
+        debounceTimer.Stop();
+        debounceTimer.Start();
+
+        otterFileDebounceTimer.Stop();
+        otterFileDebounceTimer.Start();
     }
 
     public void OnNavigatedTo(object parameter)
@@ -461,6 +515,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedFrom()
     {
-        openedZip?.Dispose();
+
     }
 }

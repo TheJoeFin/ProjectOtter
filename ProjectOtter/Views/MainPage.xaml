@@ -22,7 +22,10 @@
         OpenPaneLength="340"
         PanePlacement="Right">
         <SplitView.Content>
-            <Grid Grid.Row="1" Padding="4,0">
+            <Grid
+                Grid.Row="1"
+                Padding="4,0"
+                RowSpacing="4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition
                         Width="*"
@@ -83,6 +86,7 @@
                     <HyperlinkButton
                         x:Name="GitHubLink"
                         Grid.Column="2"
+                        Width="118"
                         Content="{x:Bind mvm.IssueNumberText, Mode=OneWay}"
                         NavigateUri="{x:Bind mvm.GitHubIssueURL, Mode=OneWay}" />
                 </Grid>
@@ -121,7 +125,7 @@
                                 <StackPanel Orientation="Vertical">
                                     <ItemsRepeater ItemsSource="{x:Bind mvm.UtilitiesFilter, Mode=TwoWay}">
                                         <DataTemplate x:DataType="models:UtilityFilter">
-                                            <CheckBox Content="{x:Bind UtilityName}" IsChecked="{x:Bind IsFiltering}" />
+                                            <CheckBox Content="{x:Bind UtilityName}" IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
                                         </DataTemplate>
                                     </ItemsRepeater>
                                 </StackPanel>
