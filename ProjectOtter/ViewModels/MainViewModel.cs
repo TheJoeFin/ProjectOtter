@@ -30,7 +30,7 @@ public partial class MainViewModel : ObservableRecipient
     private string fileContent = string.Empty;
 
     [ObservableProperty]
-    private ZipArchiveEntry? selectedEntry;
+    private ZipEntryItem? selectedEntry;
 
     [ObservableProperty]
     private bool isToolsPaneOpen = false;
@@ -103,12 +103,12 @@ public partial class MainViewModel : ObservableRecipient
         }
     }
 
-    public List<ZipArchiveEntry> AllZipArchiveEntries { get; set; } = new();
+    public List<ZipEntryItem> AllZipArchiveEntries { get; set; } = new();
 
-    public ObservableCollection<ZipArchiveEntry> DisplayZipEntries { get; set; } = new();
+    public ObservableCollection<ZipEntryItem> DisplayZipEntries { get; set; } = new();
 
     [ObservableProperty]
-    private bool hideEmptyFiles = false;
+    private bool hideEmptyFiles = true;
 
     [ObservableProperty]
     private string filterText = string.Empty;
@@ -156,14 +156,14 @@ public partial class MainViewModel : ObservableRecipient
             return;
         }
 
-        foreach (ZipArchiveEntry entry in AllZipArchiveEntries)
+        foreach (ZipEntryItem entry in AllZipArchiveEntries)
         {
             bool shouldAdd = true;
 
-            // if (HideEmptyFiles && entry.CompressedLength == 0)
-            //     shouldAdd = false;
+            if (HideEmptyFiles && entry.IsEmpty)
+                shouldAdd = false;
 
-            if (!string.IsNullOrEmpty(FilterText) && !entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(FilterText) && !entry.Entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase))
                 shouldAdd = false;
 
             if (shouldAdd)
@@ -200,7 +200,7 @@ public partial class MainViewModel : ObservableRecipient
         otterFileDebounceTimer.Start();
     }
 
-    partial void OnSelectedEntryChanged(ZipArchiveEntry? value)
+    partial void OnSelectedEntryChanged(ZipEntryItem? value)
     {
         if (value is null)
         {
@@ -208,10 +208,10 @@ public partial class MainViewModel : ObservableRecipient
             return;
         }
 
-        using var stream = value.Open();
+        using var stream = value.Entry.Open();
         using var reader = new StreamReader(stream);
 
-        if (Path.GetExtension(value.FullName) == ".json")
+        if (value.IsJSON)
         {
             JsonSerializerOptions option = new()
             {
@@ -237,7 +237,7 @@ public partial class MainViewModel : ObservableRecipient
     private void ResetCollectionToAll()
     {
         DisplayZipEntries.Clear();
-        foreach (ZipArchiveEntry entry in AllZipArchiveEntries)
+        foreach (ZipEntryItem entry in AllZipArchiveEntries)
             DisplayZipEntries.Add(entry);
     }
 
@@ -299,10 +299,11 @@ public partial class MainViewModel : ObservableRecipient
     {
         foreach (ZipArchiveEntry entry in entries)
         {
-            AllZipArchiveEntries.Add(entry);
+            ZipEntryItem zipEntry = new(entry);
+            AllZipArchiveEntries.Add(zipEntry);
         }
-        FilterAndHideEntries();
 
+        FilterAndHideEntries();
         OpenBaselineFiles();
     }
 
@@ -321,7 +322,7 @@ public partial class MainViewModel : ObservableRecipient
 
         foreach (string file in filesToRead)
         {
-            ZipArchiveEntry? entry = AllZipArchiveEntries.FirstOrDefault(x => x.FullName.Equals(file, StringComparison.InvariantCultureIgnoreCase));
+            ZipEntryItem? entry = AllZipArchiveEntries.FirstOrDefault(x => x.Entry.FullName.Equals(file, StringComparison.InvariantCultureIgnoreCase));
 
             if (file == "otterfile.json")
             {
@@ -331,7 +332,7 @@ public partial class MainViewModel : ObservableRecipient
                     continue;
                 }
 
-                using var otterstream = entry.Open();
+                using var otterstream = entry.Entry.Open();
                 using var otterreader = new StreamReader(otterstream);
                 otterFile = JsonSerializer.Deserialize<OtterFile>(otterreader.ReadToEnd()) ?? new();
                 FriendlyName = otterFile.FriendlyName;
@@ -342,12 +343,12 @@ public partial class MainViewModel : ObservableRecipient
             if (entry is null)
                 continue;
 
-            FileContent += entry.FullName;
+            FileContent += entry.Entry.FullName;
             FileContent += Environment.NewLine;
-            using var stream = entry.Open();
+            using var stream = entry.Entry.Open();
             using var reader = new StreamReader(stream);
 
-            if (Path.GetExtension(entry.FullName) == ".json")
+            if (Path.GetExtension(entry.Entry.FullName) == ".json")
             {
                 JsonSerializerOptions option = new()
                 {

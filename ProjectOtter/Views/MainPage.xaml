@@ -6,6 +6,7 @@
     xmlns:converters="using:ProjectOtter.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ProjectOtter.Models"
     Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
     mc:Ignorable="d">
 
@@ -51,6 +52,7 @@
                         x:Name="FileOpenedName"
                         Grid.Column="1"
                         VerticalAlignment="Center"
+                        IsTextSelectionEnabled="True"
                         Text="{x:Bind mvm.FileName, Mode=TwoWay}" />
                 </StackPanel>
 
@@ -89,7 +91,6 @@
                 <RelativePanel Grid.Row="1">
                     <ToggleSwitch
                         x:Name="HideZeros"
-                        IsEnabled="False"
                         IsOn="{x:Bind mvm.HideEmptyFiles, Mode=TwoWay}"
                         OffContent="Hide empty"
                         OnContent="Hide empty" />
@@ -130,7 +131,7 @@
                         ItemsSource="{x:Bind mvm.DisplayZipEntries}"
                         SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="compression:ZipArchiveEntry">
+                            <DataTemplate x:DataType="models:ZipEntryItem">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -140,12 +141,12 @@
                                         x:Name="FullNameText"
                                         Grid.Column="0"
                                         Margin="0,0,6,0"
-                                        Text="{x:Bind FullName}"
+                                        Text="{x:Bind Name}"
                                         TextTrimming="CharacterEllipsis" />
                                     <TextBlock
                                         x:Name="LengthText"
                                         Grid.Column="1"
-                                        Text="{x:Bind Length}" />
+                                        Text="{x:Bind InitalLength}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -153,15 +154,23 @@
                 </ScrollViewer>
 
                 <RelativePanel Grid.Row="1" Grid.Column="1">
-                    <TextBlock
-                        x:Name="SelectedFileName"
-                        Grid.Column="1"
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        FontFamily="Cascadia Mono"
-                        IsTextSelectionEnabled="True"
+                    <ScrollViewer
+                        HorizontalScrollBarVisibility="Auto"
+                        RelativePanel.AlignBottomWithPanel="True"
+                        RelativePanel.AlignLeftWithPanel="True"
+                        RelativePanel.AlignTopWithPanel="True"
                         RelativePanel.AlignVerticalCenterWithPanel="True"
-                        Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+                        RelativePanel.LeftOf="WrapTextToggle"
+                        VerticalScrollBarVisibility="Disabled">
+                        <TextBlock
+                            x:Name="SelectedFileName"
+                            Grid.Column="1"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            FontFamily="Cascadia Mono"
+                            IsTextSelectionEnabled="True"
+                            Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+                    </ScrollViewer>
                     <ToggleSwitch
                         x:Name="WrapTextToggle"
                         OffContent="Wrap"
@@ -220,7 +229,7 @@
         <SplitView.Pane>
             <ScrollViewer>
                 <StackPanel
-                    Padding="16"
+                    Padding="16,0"
                     Orientation="Vertical"
                     Spacing="24">
                     <Grid>

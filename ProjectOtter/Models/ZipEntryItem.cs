@@ -14,10 +14,13 @@ public class ZipEntryItem
 
     public string Content { get; set; } = string.Empty;
 
-    public bool IsEmpty => Entry.CompressedLength == 0;
+    public bool IsEmpty => InitalLength == 0;
+
+    public int InitalLength { get; set; }
 
     public ZipEntryItem(ZipArchiveEntry entry)
     {
         Entry = entry;
+        InitalLength = (int)Entry.Length;
     }
 }
