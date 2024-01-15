@@ -353,8 +353,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             AllZipArchiveEntries.Add(zipEntry);
         }
 
-        FilterAndHideEntries();
         OpenBaselineFiles();
+        FilterAndHideEntries();
     }
 
     private void OpenBaselineFiles()
@@ -363,11 +363,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         List<string> filesToRead = new()
         {
+            "otterFile.json",
             "settings.json",
             "UpdateState.json",
             "windows-settings.txt",
             "windows-version.txt",
-            "otterFile.json",
         };
 
         foreach (string file in filesToRead)
@@ -492,6 +492,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             utilityFilter.FilteringChanged += UtilityFilter_FilteringChanged;
             UtilitiesFilter.Add(utilityFilter);
         }
+
+        if (otterFile.RelatedUtilities.Any())
+            FilterOnUtility = true;
 
         loadingSettingsFile = false;
     }

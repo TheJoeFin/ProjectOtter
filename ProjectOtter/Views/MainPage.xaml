@@ -125,7 +125,13 @@
                                 <StackPanel Orientation="Vertical">
                                     <ItemsRepeater ItemsSource="{x:Bind mvm.UtilitiesFilter, Mode=TwoWay}">
                                         <DataTemplate x:DataType="models:UtilityFilter">
-                                            <CheckBox Content="{x:Bind UtilityName}" IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
+                                            <Grid>
+                                                <CheckBox
+                                                    HorizontalAlignment="Left"
+                                                    VerticalAlignment="Center"
+                                                    Content="{x:Bind UtilityName}"
+                                                    IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
+                                            </Grid>
                                         </DataTemplate>
                                     </ItemsRepeater>
                                 </StackPanel>
@@ -184,7 +190,10 @@
                     </ListView>
                 </ScrollViewer>
 
-                <RelativePanel Grid.Row="1" Grid.Column="1">
+                <RelativePanel
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Height="36">
                     <ScrollViewer
                         HorizontalScrollBarVisibility="Auto"
                         RelativePanel.AlignBottomWithPanel="True"
