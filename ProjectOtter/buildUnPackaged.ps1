@@ -12,14 +12,14 @@ if(Test-Path -Path $BuildPath)
 
 # Dotnet restore and build
 dotnet publish `
-	   --runtime win-x64 `
-	   --self-contained true `
-	   -c Release `
-	   -v minimal `
-	   -p:Platform=x64 `
-	   -p:PublishReadyToRun=true `
-	   -p:Version=$VersionDot `
-	   -o $BuildPath `
+   --runtime win-x64 `
+   --self-contained true `
+   -c Release `
+   -v minimal `
+   -p:Platform=x64 `
+   -p:PublishReadyToRun=true `
+   -p:Version=$VersionDot `
+   -o $BuildPath `
 
 # Archive Build
 Compress-Archive -Path "$BuildPath" -DestinationPath $Archive

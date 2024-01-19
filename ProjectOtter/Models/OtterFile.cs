@@ -8,6 +8,7 @@ public class OtterFile
     public int GitHubIssueNumber { get; set; }
     public IEnumerable<string> RelatedUtilities { get; set; } = Enumerable.Empty<string>();
     public IEnumerable<Version> RelatedVersions { get; set; } = Enumerable.Empty<Version>();
+    public string FilteringText { get; set; } = string.Empty;
 
     public OtterFile()
     {
