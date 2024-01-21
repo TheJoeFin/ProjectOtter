@@ -52,7 +52,17 @@
                         Grid.Column="0"
                         Command="{x:Bind mvm.OpenFileCommand}"
                         Content="Open .zip"
-                        Style="{ThemeResource AccentButtonStyle}" />
+                        Style="{ThemeResource AccentButtonStyle}">
+                        <Button.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Name="CloseItem"
+                                    Command="{x:Bind mvm.CloseOpenedFileCommand}"
+                                    Icon="Clear"
+                                    Text="Close Opened File" />
+                            </MenuFlyout>
+                        </Button.ContextFlyout>
+                    </Button>
                     <TextBlock
                         x:Name="FileOpenedName"
                         Grid.Column="1"

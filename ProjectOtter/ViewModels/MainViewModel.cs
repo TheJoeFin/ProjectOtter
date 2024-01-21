@@ -18,7 +18,7 @@ namespace ProjectOtter.ViewModels;
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
     private string otterFileName = "otterFile.json";
-    private OtterFile otterFile = new();
+    private OtterFile? otterFile = new();
     private string zipPath = string.Empty;
     private bool loadingSettingsFile = false;
 
@@ -207,6 +207,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private async void OtterFileValueChanged()
     {
+        otterFile ??= new();
         otterFile.FriendlyName = FriendlyName;
         otterFile.GitHubIssueNumber = GitHubIssueNumber;
 
@@ -295,6 +296,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand]
+    private void CloseOpenedFile() => CloseZip();
+
+    [RelayCommand]
     private void FilterOnVersion() => FilterText = PowerToysVersion.ToString();
 
     [RelayCommand]
@@ -328,12 +332,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         if (await picker.PickSingleFileAsync() is not StorageFile file)
         {
-            FileName = "Operation cancelled.";
+            FileName = ".zip opening cancelled.";
             return;
         }
 
-        DisplayZipEntries.Clear();
-        AllZipArchiveEntries.Clear();
+        CloseZip();
+
         FileName = file.Name;
 
         if (Path.GetExtension(file.Path) != ".zip")
@@ -480,7 +484,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         PowerToysSettings? settings = JsonSerializer.Deserialize<PowerToysSettings>(content);
 
-        if (settings is null)
+        if (settings is null || otterFile is null)
             return;
 
         foreach (var utility in settings.enabled)
@@ -502,6 +506,19 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             FilterOnUtility = true;
 
         loadingSettingsFile = false;
+    }
+
+    private void CloseZip()
+    {
+        otterFile = null;
+        FileContent = string.Empty;
+        FriendlyName = string.Empty;
+        GitHubIssueNumber = 1;
+        FilterOnUtility = false;
+        AllZipArchiveEntries.Clear();
+        UtilitiesFilter.Clear();
+        FileName = "no .zip selected";
+        FilterAndHideEntries();
     }
 
     private void UtilityFilter_FilteringChanged(object? sender, EventArgs e)
