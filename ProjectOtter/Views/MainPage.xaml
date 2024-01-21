@@ -15,6 +15,7 @@
         <converters:BoolToWordWrapConverter x:Key="BoolToWrapConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisConverter" />
+        <converters:EmptyCollectionToBool x:Key="EmptyCollectionToBool" />
     </Page.Resources>
 
     <SplitView
@@ -221,9 +222,17 @@
                     <Button
                         x:Name="HomeAppBarButton"
                         Margin="0,0,20,0"
-                        Command="{x:Bind mvm.ResetToHomeTextCommand}"
                         RelativePanel.LeftOf="SettingsButton">
                         Starting Text
+                        <Button.Flyout>
+                            <Flyout>
+                                <Grid Width="400" Height="600">
+                                    <ScrollViewer>
+                                        <TextBlock IsTextSelectionEnabled="True" Text="{x:Bind mvm.StartingText, Mode=TwoWay}" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
                     <Button
                         x:Name="SettingsButton"

@@ -47,6 +47,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private int gitHubIssueNumber = 1;
 
     [ObservableProperty]
+    private string startingText = string.Empty;
+
+    [ObservableProperty]
     private Version powerToysVersion = new(0, 0, 0, 0);
 
     public Uri GitHubIssueURL => new($"https://github.com/microsoft/PowerToys/issues/{GitHubIssueNumber}");
@@ -430,6 +433,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             FileContent += Environment.NewLine;
             FileContent += Environment.NewLine;
         }
+
+        StartingText = FileContent;
 
         var fileContentLines = FileContent.Split(Environment.NewLine);
         foreach (var line in fileContentLines)
