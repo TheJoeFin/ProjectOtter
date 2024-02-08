@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using ProjectOtter.Helpers;
-using ProjectOtter.Services;
 using ProjectOtter.ViewModels;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -34,6 +33,6 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
-        App.AppTitlebar = AppTitleBarText as UIElement;
+        App.AppTitlebar = AppTitleBarText;
     }
 }

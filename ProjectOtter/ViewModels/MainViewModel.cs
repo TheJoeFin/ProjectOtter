@@ -108,6 +108,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    public ObservableCollection<PreviousItem> PreviousItems { get; set; } = new();
+
+    [ObservableProperty]
+    private PreviousItem? selectedPreviousItem;
+
     public ObservableCollection<UtilityFilter> UtilitiesFilter { get; set; } = new();
 
     public List<ZipEntryItem> AllZipArchiveEntries { get; set; } = new();
@@ -126,12 +131,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
 
-    public INavigationService NavigationService
-    {
-        get;
-    }
+    public INavigationService NavigationService { get; }
 
-    public MainViewModel(INavigationService navigationService)
+    public ILocalSettingsService LocalSettingsService { get; }
+
+    public MainViewModel(INavigationService navigationService, ILocalSettingsService localSettingsService)
     {
         debounceTimer.Interval = TimeSpan.FromMilliseconds(200);
         debounceTimer.Tick += DebounceTimer_Tick;
@@ -140,6 +144,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFileDebounceTimer.Tick += OtterFileDebounceTimer_Tick; ;
 
         NavigationService = navigationService;
+        LocalSettingsService = localSettingsService;
     }
 
     private void OtterFileDebounceTimer_Tick(object? sender, object e)
@@ -232,6 +237,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         using var stream = entry.Open();
         using StreamWriter writer = new(stream);
         await writer.WriteAsync(otterFileAsJson);
+        await SaveCurrentItemToHistory();
     }
 
     partial void OnFriendlyNameChanged(string value)
@@ -244,6 +250,25 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         otterFileDebounceTimer.Stop();
         otterFileDebounceTimer.Start();
+    }
+
+    partial void OnSelectedPreviousItemChanged(PreviousItem? value)
+    {
+        if (value is null || Path.GetExtension(value.ZipPath) != ".zip")
+            return;
+
+        CloseZip();
+
+        FileName = value.FileName;
+        zipPath = value.ZipPath;
+        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+
+        if (zip.Entries.Count > 0)
+        {
+            ReadTheZip(zip.Entries);
+        }
+
+        SelectedPreviousItem = null;
     }
 
     partial void OnSelectedEntryChanged(ZipEntryItem? value)
@@ -352,7 +377,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private void ReadTheZip(ReadOnlyCollection<ZipArchiveEntry> entries)
+    private async void ReadTheZip(ReadOnlyCollection<ZipArchiveEntry> entries)
     {
         foreach (ZipArchiveEntry entry in entries)
         {
@@ -362,6 +387,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         OpenBaselineFiles();
         FilterAndHideEntries();
+        await SaveCurrentItemToHistory();
     }
 
     private void OpenBaselineFiles()
@@ -513,6 +539,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFile = null;
         FileContent = string.Empty;
         FriendlyName = string.Empty;
+        SelectedEntry = null;
         GitHubIssueNumber = 1;
         FilterOnUtility = false;
         AllZipArchiveEntries.Clear();
@@ -533,13 +560,52 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFileDebounceTimer.Start();
     }
 
-    public void OnNavigatedTo(object parameter)
+    public async void OnNavigatedTo(object parameter)
     {
-        
+        await LoadPreviousItems();
     }
 
     public void OnNavigatedFrom()
     {
+    }
 
+    private async Task LoadPreviousItems()
+    {
+        ICollection<PreviousItem>? prevHistory = null;
+
+        try
+        {
+            prevHistory = await LocalSettingsService.ReadSettingAsync<ICollection<PreviousItem>>(nameof(PreviousItems));
+        }
+        catch { }
+
+        if (prevHistory is null || prevHistory.Count == 0)
+            return;
+
+        foreach (PreviousItem hisItem in prevHistory)
+            PreviousItems.Add(hisItem);
+    }
+
+    private async Task SaveCurrentItemToHistory()
+    {
+        if (string.IsNullOrWhiteSpace(zipPath))
+            return;
+
+        string displayText = @"// no GitHub number or friendly name set";
+        
+        if (GitHubIssueNumber != 1)
+            displayText = $"#{GitHubIssueNumber} {FriendlyName}";
+
+        PreviousItem previousItem = new()
+        {
+            ZipPath = zipPath,
+            DisplayText = displayText,
+        };
+
+        if (PreviousItems.Contains(previousItem))
+            PreviousItems.Remove(previousItem);
+        PreviousItems.Insert(0, previousItem);
+
+        await LocalSettingsService.SaveSettingAsync(nameof(PreviousItems), PreviousItems);
     }
 }

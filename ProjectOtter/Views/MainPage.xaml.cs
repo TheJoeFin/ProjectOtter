@@ -5,11 +5,11 @@ namespace ProjectOtter.Views;
 
 public sealed partial class MainPage : Page
 {
-    public MainViewModel mvm;
+    public MainViewModel ViewModel { get; }
 
     public MainPage()
     {
-        mvm = App.GetService<MainViewModel>();
+        ViewModel = App.GetService<MainViewModel>();
         InitializeComponent();
     }
 }

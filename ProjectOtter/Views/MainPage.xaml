@@ -20,7 +20,7 @@
 
     <SplitView
         DisplayMode="Inline"
-        IsPaneOpen="{x:Bind mvm.IsToolsPaneOpen, Mode=TwoWay}"
+        IsPaneOpen="{x:Bind ViewModel.IsToolsPaneOpen, Mode=TwoWay}"
         OpenPaneLength="340"
         PanePlacement="Right">
         <SplitView.Content>
@@ -47,17 +47,52 @@
                     Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12">
+                    <Button>
+                        <SymbolIcon Symbol="AllApps" />
+                        <Button.Flyout>
+                            <Flyout LightDismissOverlayMode="On">
+                                <ListView ItemsSource="{x:Bind ViewModel.PreviousItems, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedPreviousItem, Mode=TwoWay}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:PreviousItem">
+                                            <Grid
+                                                Margin="0,8"
+                                                ColumnSpacing="12"
+                                                RowSpacing="6">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="auto" />
+                                                    <RowDefinition Height="auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.ColumnSpan="2" Text="{x:Bind DisplayText}" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Opacity="0.8"
+                                                    Text="{x:Bind TimeAgo}" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Text="{x:Bind FileName}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                     <Button
                         x:Name="OpenFileButton"
                         Grid.Column="0"
-                        Command="{x:Bind mvm.OpenFileCommand}"
+                        Command="{x:Bind ViewModel.OpenFileCommand}"
                         Content="Open .zip"
                         Style="{ThemeResource AccentButtonStyle}">
                         <Button.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem
                                     Name="CloseItem"
-                                    Command="{x:Bind mvm.CloseOpenedFileCommand}"
+                                    Command="{x:Bind ViewModel.CloseOpenedFileCommand}"
                                     Icon="Clear"
                                     Text="Close Opened File" />
                             </MenuFlyout>
@@ -68,7 +103,7 @@
                         Grid.Column="1"
                         VerticalAlignment="Center"
                         IsTextSelectionEnabled="True"
-                        Text="{x:Bind mvm.FileName, Mode=TwoWay}" />
+                        Text="{x:Bind ViewModel.FileName, Mode=TwoWay}" />
                 </StackPanel>
 
                 <Grid
@@ -84,7 +119,7 @@
                         x:Name="FriendlyName"
                         Grid.Column="0"
                         PlaceholderText="Friendly Name or Title"
-                        Text="{x:Bind mvm.FriendlyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        Text="{x:Bind ViewModel.FriendlyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                     <NumberBox
                         x:Name="IssueNumber"
@@ -93,14 +128,14 @@
                         VerticalAlignment="Center"
                         Minimum="0"
                         SpinButtonPlacementMode="Inline"
-                        Text="{x:Bind mvm.GitHubIssueNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        Text="{x:Bind ViewModel.GitHubIssueNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                     <HyperlinkButton
                         x:Name="GitHubLink"
                         Grid.Column="2"
                         Width="118"
-                        Content="{x:Bind mvm.IssueNumberText, Mode=OneWay}"
-                        NavigateUri="{x:Bind mvm.GitHubIssueURL, Mode=OneWay}" />
+                        Content="{x:Bind ViewModel.IssueNumberText, Mode=OneWay}"
+                        NavigateUri="{x:Bind ViewModel.GitHubIssueURL, Mode=OneWay}" />
                 </Grid>
 
 
@@ -116,14 +151,14 @@
                     <ToggleSwitch
                         x:Name="HideZeros"
                         Grid.Column="0"
-                        IsOn="{x:Bind mvm.HideEmptyFiles, Mode=TwoWay}"
+                        IsOn="{x:Bind ViewModel.HideEmptyFiles, Mode=TwoWay}"
                         OffContent="Hide empty"
                         OnContent="Hide empty" />
                     <TextBox
                         x:Name="FilterSearchBox"
                         Grid.Column="1"
                         PlaceholderText="Filter files..."
-                        Text="{x:Bind mvm.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                        Text="{x:Bind ViewModel.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                         <TextBox.KeyboardAccelerators>
                             <KeyboardAccelerator Key="F" Modifiers="Control" />
                         </TextBox.KeyboardAccelerators>
@@ -131,11 +166,11 @@
                     <ToggleSplitButton
                         x:Name="FilterToggleSplitButton"
                         Grid.Column="2"
-                        IsChecked="{x:Bind mvm.FilterOnUtility, Mode=TwoWay}">
+                        IsChecked="{x:Bind ViewModel.FilterOnUtility, Mode=TwoWay}">
                         <ToggleSplitButton.Flyout>
                             <Flyout>
                                 <StackPanel Orientation="Vertical">
-                                    <ItemsRepeater ItemsSource="{x:Bind mvm.UtilitiesFilter, Mode=TwoWay}">
+                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.UtilitiesFilter, Mode=TwoWay}">
                                         <DataTemplate x:DataType="models:UtilityFilter">
                                             <Grid>
                                                 <CheckBox
@@ -164,7 +199,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Source="/Assets/StoreLogo.Scale-400.png"
-                    Visibility="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
+                    Visibility="{x:Bind ViewModel.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
                 <ProgressRing
                     Grid.Row="2"
                     Grid.Column="0"
@@ -172,13 +207,13 @@
                     Height="200"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    IsActive="{x:Bind mvm.OpenFileCommand.IsRunning, Mode=OneWay}" />
+                    IsActive="{x:Bind ViewModel.OpenFileCommand.IsRunning, Mode=OneWay}" />
                 <ScrollViewer Grid.Row="2" Grid.Column="0">
                     <ListView
                         x:Name="ContentsListView"
                         Background="{ThemeResource CardBackgroundFillColorSecondary}"
-                        ItemsSource="{x:Bind mvm.DisplayZipEntries}"
-                        SelectedItem="{x:Bind mvm.SelectedEntry, Mode=TwoWay}">
+                        ItemsSource="{x:Bind ViewModel.DisplayZipEntries}"
+                        SelectedItem="{x:Bind ViewModel.SelectedEntry, Mode=TwoWay}">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:ZipEntryItem">
                                 <Grid>
@@ -221,7 +256,7 @@
                             VerticalAlignment="Center"
                             FontFamily="Cascadia Mono"
                             IsTextSelectionEnabled="True"
-                            Text="{x:Bind mvm.SelectedEntry.Name, Mode=OneWay}" />
+                            Text="{x:Bind ViewModel.SelectedEntry.Name, Mode=OneWay}" />
                     </ScrollViewer>
                     <ToggleSwitch
                         x:Name="WrapTextToggle"
@@ -238,7 +273,7 @@
                             <Flyout>
                                 <Grid Width="400" Height="600">
                                     <ScrollViewer>
-                                        <TextBlock IsTextSelectionEnabled="True" Text="{x:Bind mvm.StartingText, Mode=TwoWay}" />
+                                        <TextBlock IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.StartingText, Mode=TwoWay}" />
                                     </ScrollViewer>
                                 </Grid>
                             </Flyout>
@@ -247,13 +282,13 @@
                     <Button
                         x:Name="SettingsButton"
                         Margin="0,0,20,0"
-                        Command="{x:Bind mvm.GoToSettingsPageCommand}"
+                        Command="{x:Bind ViewModel.GoToSettingsPageCommand}"
                         RelativePanel.LeftOf="ToolPaneButton">
                         <SymbolIcon Symbol="Setting" />
                     </Button>
                     <Button
                         x:Name="ToolPaneButton"
-                        Command="{x:Bind mvm.ToggleIsPaneOpenCommand}"
+                        Command="{x:Bind ViewModel.ToggleIsPaneOpenCommand}"
                         RelativePanel.AlignRightWithPanel="True">
                         <SymbolIcon Symbol="Repair" />
                     </Button>
@@ -265,7 +300,7 @@
                     AcceptsReturn="True"
                     FontFamily="Cascadia Mono"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    Text="{x:Bind mvm.FileContent, Mode=TwoWay}"
+                    Text="{x:Bind ViewModel.FileContent, Mode=TwoWay}"
                     TextWrapping="{x:Bind WrapTextToggle.IsOn, Converter={StaticResource BoolToWrapConverter}, Mode=OneWay}" />
 
                 <RelativePanel
@@ -282,7 +317,7 @@
                         x:Name="CountNumberText"
                         VerticalAlignment="Center"
                         RelativePanel.RightOf="StaticCountText"
-                        Text="{x:Bind mvm.DisplayZipEntries.Count, Mode=OneWay}" />
+                        Text="{x:Bind ViewModel.DisplayZipEntries.Count, Mode=OneWay}" />
                 </RelativePanel>
 
                 <controls:GridSplitter
@@ -318,7 +353,7 @@
                             Grid.Column="1"
                             Margin="0"
                             HorizontalAlignment="Right"
-                            Command="{x:Bind mvm.ToggleIsPaneOpenCommand}">
+                            Command="{x:Bind ViewModel.ToggleIsPaneOpenCommand}">
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <TextBlock Text="Close" />
                                 <SymbolIcon Symbol="ClosePane" />
@@ -333,22 +368,22 @@
                                 Maximum="1000"
                                 Minimum="0"
                                 SpinButtonPlacementMode="Inline"
-                                Value="{x:Bind mvm.KeyAsInt, Mode=TwoWay, UpdateSourceTrigger=Default}" />
-                            <TextBlock VerticalAlignment="Center" Text="{x:Bind mvm.KeyAsVirtualKey, Mode=OneWay}" />
+                                Value="{x:Bind ViewModel.KeyAsInt, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind ViewModel.KeyAsVirtualKey, Mode=OneWay}" />
                         </StackPanel>
                         <HyperlinkButton Content="WinForms keys Docs..." NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.keys" />
                         <HyperlinkButton Content="VirtualKeys Docs..." NavigateUri="https://learn.microsoft.com/en-us/uwp/api/windows.system.virtualkey" />
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Spacing="12">
                         <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Timestamp to human time" />
-                        <NumberBox SpinButtonPlacementMode="Inline" Value="{x:Bind mvm.TimeStamp, Mode=TwoWay, UpdateSourceTrigger=Default}" />
-                        <TextBlock Text="{x:Bind mvm.DateTimeFromTimestamp, Mode=OneWay}" />
+                        <NumberBox SpinButtonPlacementMode="Inline" Value="{x:Bind ViewModel.TimeStamp, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                        <TextBlock Text="{x:Bind ViewModel.DateTimeFromTimestamp, Mode=OneWay}" />
                     </StackPanel>
                     <StackPanel Orientation="Vertical" Spacing="12">
                         <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Version Report is from" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock VerticalAlignment="Center" Text="{x:Bind mvm.PowerToysVersion.ToString(), Mode=OneWay}" />
-                            <Button Command="{x:Bind mvm.FilterOnVersionCommand}">
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind ViewModel.PowerToysVersion.ToString(), Mode=OneWay}" />
+                            <Button Command="{x:Bind ViewModel.FilterOnVersionCommand}">
                                 <SymbolIcon Symbol="Filter" />
                             </Button>
                         </StackPanel>
@@ -358,8 +393,8 @@
                         <NumberBox
                             Minimum="0"
                             SpinButtonPlacementMode="Inline"
-                            Value="{x:Bind mvm.BuildNumber, Mode=TwoWay, UpdateSourceTrigger=Default}" />
-                        <TextBlock Text="{x:Bind mvm.WindowsVersion, Mode=OneWay}" />
+                            Value="{x:Bind ViewModel.BuildNumber, Mode=TwoWay, UpdateSourceTrigger=Default}" />
+                        <TextBlock Text="{x:Bind ViewModel.WindowsVersion, Mode=OneWay}" />
                         <HyperlinkButton Content="More on Wikipedia..." NavigateUri="https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions" />
                     </StackPanel>
                 </StackPanel>
