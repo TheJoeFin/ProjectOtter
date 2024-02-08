@@ -335,6 +335,16 @@
                     </controls:GridSplitter.RenderTransform>
 
                 </controls:GridSplitter>
+
+                <InfoBar
+                    Title="{x:Bind ViewModel.ErrorTitle, Mode=OneWay}"
+                    Grid.Row="2"
+                    Margin="20"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    IsOpen="{x:Bind ViewModel.ShowFailedToReadFile, Mode=TwoWay}"
+                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                    Severity="Error" />
             </Grid>
         </SplitView.Content>
         <SplitView.Pane>

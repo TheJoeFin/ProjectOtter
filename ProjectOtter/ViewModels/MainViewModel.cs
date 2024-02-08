@@ -120,7 +120,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     public ObservableCollection<ZipEntryItem> DisplayZipEntries { get; set; } = new();
 
     [ObservableProperty]
+    private bool showFailedToReadFile = false;
+
+    [ObservableProperty]
     private bool filterOnUtility = false;
+
+    [ObservableProperty]
+    private string errorMessage = string.Empty;
+
+    [ObservableProperty]
+    private string errorTitle = "Error opening file";
 
     [ObservableProperty]
     private bool hideEmptyFiles = true;
@@ -257,16 +266,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (value is null || Path.GetExtension(value.ZipPath) != ".zip")
             return;
 
-        CloseZip();
-
-        FileName = value.FileName;
-        zipPath = value.ZipPath;
-        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
-
-        if (zip.Entries.Count > 0)
-        {
-            ReadTheZip(zip.Entries);
-        }
+        TryToOpenThisPath(value.ZipPath);
 
         SelectedPreviousItem = null;
     }
@@ -361,20 +361,57 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
+        TryToOpenThisPath(file.Path);
+    }
+
+    private void TryToOpenThisPath(string path)
+    {
+        ShowFailedToReadFile = false;
         CloseZip();
 
-        FileName = file.Name;
+        FileName = Path.GetFileNameWithoutExtension(path);
 
-        if (Path.GetExtension(file.Path) != ".zip")
-            return;
-
-        zipPath = file.Path;
-        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
-
-        if (zip.Entries.Count > 0)
+        if (Path.GetExtension(path) != ".zip")
         {
-            ReadTheZip(zip.Entries);
+            ShowFailedToReadFile = true;
+            return;
         }
+
+        zipPath = path;
+
+        try
+        {
+            using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+
+            if (zip.Entries.Count > 0)
+            {
+                ReadTheZip(zip.Entries);
+            }
+        }
+        catch (NotSupportedException notSupportedException)
+        {
+            ErrorTitle = "File format not supported";
+            ErrorMessage = notSupportedException.Message;
+            ShowFailedToReadFile = true;
+        }
+        catch (DirectoryNotFoundException directoryNotFoundException)
+        {
+            ErrorTitle = "Directory not found";
+            ErrorMessage = directoryNotFoundException.Message;
+            ShowFailedToReadFile = true;
+        }
+        catch (FileNotFoundException fileNotFoundException)
+        {
+            ErrorTitle = "File not found";
+            ErrorMessage = fileNotFoundException.Message;
+            ShowFailedToReadFile = true;
+        }
+        catch (Exception ex)
+        {
+            ErrorTitle = "Error opening file";
+            ErrorMessage = ex.Message;
+            ShowFailedToReadFile = true;
+        }   
     }
 
     private async void ReadTheZip(ReadOnlyCollection<ZipArchiveEntry> entries)
