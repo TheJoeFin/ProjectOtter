@@ -135,7 +135,17 @@
                         Grid.Column="2"
                         Width="118"
                         Content="{x:Bind ViewModel.IssueNumberText, Mode=OneWay}"
-                        NavigateUri="{x:Bind ViewModel.GitHubIssueURL, Mode=OneWay}" />
+                        NavigateUri="{x:Bind ViewModel.GitHubIssueURL, Mode=OneWay}">
+                        <HyperlinkButton.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Name="GetGitHubDetails"
+                                    Command="{x:Bind ViewModel.TryToGetGitHubDetailsCommand}"
+                                    Icon="Globe"
+                                    Text="Try to find GitHub Details for this file" />
+                            </MenuFlyout>
+                        </HyperlinkButton.ContextFlyout>
+                    </HyperlinkButton>
                 </Grid>
 
 

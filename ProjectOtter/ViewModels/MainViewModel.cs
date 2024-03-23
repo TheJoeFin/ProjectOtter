@@ -6,6 +6,7 @@ using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.Json;
 using Windows.Storage;
@@ -23,6 +24,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool loadingSettingsFile = false;
     private bool hasGhCli = false;
     private bool isWrittingToOtterFile = false;
+    private ZipArchive? zip = null;
 
     [ObservableProperty]
     private string friendlyName = string.Empty;
@@ -226,6 +228,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (isWrittingToOtterFile)
             return;
 
+        int randomId = Random.Shared.Next(1, 1000);
+        Debug.WriteLine($"{randomId}:id: OtterFileValueChanged, writing updates to OtterFile");
+        otterFileDebounceTimer.Stop();
+
+        if (string.IsNullOrWhiteSpace(zipPath))
+        {
+            Debug.WriteLine($"{randomId}:id: zipPath is empty, not writing to otterFile");
+            return;
+        }
+
         isWrittingToOtterFile = true;
         otterFile ??= new();
         otterFile.FriendlyName = FriendlyName;
@@ -258,12 +270,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         catch (IOException)
         {
+            Debug.WriteLine($"{randomId}:id: Failed to write to otterFile.json, trying again");
             otterFileDebounceTimer.Stop();
             otterFileDebounceTimer.Start();
         }
         finally
         {
             isWrittingToOtterFile = false;
+            Debug.WriteLine($"{randomId}:id: writing updates to OtterFile done");
         }
     }
 
@@ -339,6 +353,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand]
+    private async Task TryToGetGitHubDetails()
+    {
+        await GetGitHubDetails();
+    }
+
+    [RelayCommand]
     private void CloseOpenedFile() => CloseZip();
 
     [RelayCommand]
@@ -354,10 +374,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand]
-    private void ResetToHomeText()
+    private async Task ResetToHomeText()
     {
         SelectedEntry = null;
-        OpenBaselineFiles();
+        await OpenBaselineFiles();
     }
 
     [RelayCommand]
@@ -379,10 +399,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
-        TryToOpenThisPath(file.Path);
+        await TryToOpenThisPath(file.Path);
     }
 
-    private void TryToOpenThisPath(string path)
+    private async Task TryToOpenThisPath(string path)
     {
         ShowFailedToReadFile = false;
         CloseZip();
@@ -399,11 +419,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         try
         {
-            ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+            zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
 
             if (zip.Entries.Count > 0)
             {
-                ReadTheZip(zip.Entries);
+                await ReadTheZip(zip.Entries);
             }
         }
         catch (NotSupportedException notSupportedException)
@@ -429,10 +449,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             ErrorTitle = "Error opening file";
             ErrorMessage = ex.Message;
             ShowFailedToReadFile = true;
-        }   
+        }
+        finally
+        {
+            zip?.Dispose();
+        }
     }
 
-    private async void ReadTheZip(ReadOnlyCollection<ZipArchiveEntry> entries)
+    private async Task ReadTheZip(ReadOnlyCollection<ZipArchiveEntry> entries)
     {
         foreach (ZipArchiveEntry entry in entries)
         {
@@ -440,12 +464,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             AllZipArchiveEntries.Add(zipEntry);
         }
 
-        OpenBaselineFiles();
+        await OpenBaselineFiles();
         FilterAndHideEntries();
         await SaveCurrentItemToHistory();
     }
 
-    private async void OpenBaselineFiles()
+    private async Task OpenBaselineFiles()
     {
         FileContent = string.Empty;
 
@@ -457,6 +481,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             "windows-settings.txt",
             "windows-version.txt",
         };
+
+        bool readOtterFile = false;
 
         foreach (string file in filesToRead)
         {
@@ -480,25 +506,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     FriendlyName = otterFile.FriendlyName;
                     GitHubIssueNumber = otterFile.GitHubIssueNumber;
                     FilterText = otterFile.FilteringText;
+                    readOtterFile = true;
                 }
                 catch
                 {
                     // failed to read the OtterFile
                 }
                 continue;
-            }
-            else
-            {
-                if (hasGhCli)
-                {
-                    GitHubResponse? cliResponse = await GitHubCliHelper.GetIssueDetails(FileName);
-
-                    if (cliResponse is not null)
-                    {
-                        FriendlyName = cliResponse.Title;
-                        GitHubIssueNumber = cliResponse.IssueNumber;
-                    }
-                }
             }
 
             if (entry is null)
@@ -543,6 +557,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         StartingText = FileContent;
 
+        if (!readOtterFile && hasGhCli)
+        {
+            Debug.WriteLine("No otter file found, trying to get GitHub details");
+            await GetGitHubDetails();
+        }
+
         var fileContentLines = FileContent.Split(Environment.NewLine);
         foreach (var line in fileContentLines)
         {
@@ -574,6 +594,18 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     PowerToysVersion = version;
                 }
             }
+        }
+    }
+
+    private async Task GetGitHubDetails()
+    {
+        GitHubResponse? cliResponse = await GitHubCliHelper.GetIssueDetails(FileName);
+
+        if (cliResponse is not null)
+        {
+            FriendlyName = cliResponse.Title;
+            GitHubIssueNumber = cliResponse.IssueNumber;
+            Debug.WriteLine($"Got GitHub details from CLI: {cliResponse.Title} #{cliResponse.IssueNumber}");
         }
     }
 
@@ -613,6 +645,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void CloseZip()
     {
+        zipPath = string.Empty;
         otterFile = null;
         FileContent = string.Empty;
         FriendlyName = string.Empty;

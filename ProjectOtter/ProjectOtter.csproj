@@ -15,7 +15,6 @@
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSdkSelfContained>True</WindowsAppSdkSelfContained>
     <AppxPackage>True</AppxPackage>
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
