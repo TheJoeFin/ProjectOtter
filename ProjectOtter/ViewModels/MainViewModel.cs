@@ -1,12 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Humanizer;
 using Microsoft.UI.Xaml;
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
+using SimplifiedSearch;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
 using Windows.Storage;
@@ -25,6 +28,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool hasGhCli = false;
     private bool isWrittingToOtterFile = false;
     private ZipArchive? zip = null;
+
+    [ObservableProperty]
+    private DateTime? bugReportDateTime;
+
+    public string HowLongAgoBugReport => BugReportDateTime?.Humanize() ?? "unknown";
 
     [ObservableProperty]
     private string friendlyName = string.Empty;
@@ -143,6 +151,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
+    private readonly DispatcherTimer renameFileClosedTimer = new();
 
     public INavigationService NavigationService { get; }
 
@@ -154,7 +163,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         debounceTimer.Tick += DebounceTimer_Tick;
 
         otterFileDebounceTimer.Interval = TimeSpan.FromMilliseconds(500);
-        otterFileDebounceTimer.Tick += OtterFileDebounceTimer_Tick; ;
+        otterFileDebounceTimer.Tick += OtterFileDebounceTimer_Tick;
+
+        renameFileClosedTimer.Interval = TimeSpan.FromMilliseconds(1000);
+        renameFileClosedTimer.Tick += async (s, e) =>
+        {
+            renameFileClosedTimer.Stop();
+            await CheckIsIssueClosed();
+        };
 
         NavigationService = navigationService;
         LocalSettingsService = localSettingsService;
@@ -223,7 +239,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private async void OtterFileValueChanged()
+    private async Task OtterFileValueChanged()
     {
         if (isWrittingToOtterFile)
             return;
@@ -417,6 +433,18 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         zipPath = path;
 
+        // parse file name (ex: PowerToysReport_2024-03-23-12-29-28.zip) into a date time
+        // substring(14) removes the "PowerToysReport_" part
+        string datePart = FileName
+                            .Replace("PowerToysReport_", "")
+                            .Replace(".zip", "")
+                            .Replace("CLOSED_", "");
+        if (DateTime.TryParseExact(datePart, "yyyy-MM-dd-HH-mm-ss", null, DateTimeStyles.None, out DateTime dateTime))
+        {
+            BugReportDateTime = dateTime;
+            FileName += $" ({BugReportDateTime.Humanize()})";
+        }
+
         try
         {
             zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
@@ -510,7 +538,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 catch
                 {
-                    // failed to read the OtterFile
+                    Debug.WriteLine("Failed to read otterFile");
                 }
                 continue;
             }
@@ -595,23 +623,71 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
             }
         }
+
+        if (GitHubIssueNumber != 1 && hasGhCli)
+            await CheckIsIssueClosed();
+    }
+
+    private async Task CheckIsIssueClosed()
+    {
+        bool isClosed = await GitHubCliHelper.IsIssueClosed(GitHubIssueNumber);
+
+        if (!isClosed)
+            return;
+
+        if (FileName.StartsWith("CLOSED", StringComparison.InvariantCultureIgnoreCase))
+            return;
+
+        // rename zip file to include CLOSED before the PowerToysReport part
+        string newZipPath = zipPath.Replace("PowerToysReport_", "CLOSED_PowerToysReport_");
+
+        try
+        {
+            File.Move(zipPath, newZipPath);
+            zipPath = newZipPath;
+            FileName = $"CLOSED: {FileName}";
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to rename file with closed, trying again: {ex.Message}");
+            renameFileClosedTimer.Start();
+        }
     }
 
     private async Task GetGitHubDetails()
     {
-        GitHubResponse? cliResponse = await GitHubCliHelper.GetIssueDetails(FileName);
+        GitHubResponse? cliResponse = await GitHubCliHelper.GetIssueDetails(Path.GetFileNameWithoutExtension(zipPath));
 
-        if (cliResponse is not null)
+        if (cliResponse is null)
         {
-            FriendlyName = cliResponse.Title;
-            GitHubIssueNumber = cliResponse.IssueNumber;
-            Debug.WriteLine($"Got GitHub details from CLI: {cliResponse.Title} #{cliResponse.IssueNumber}");
+            Debug.WriteLine("Failed to get GitHub details from CLI");
+            return;
         }
+
+        FriendlyName = cliResponse.Title;
+        GitHubIssueNumber = cliResponse.IssueNumber;
+
+        if (!UtilitiesFilter.Any(x => x.IsFiltering))
+        {
+            // look at the labels on the github issue and add them to the filter
+            foreach (string label in cliResponse.Labels)
+            {
+                IList<UtilityFilter> matches = await UtilitiesFilter.SimplifiedSearchAsync(label, x => x.UtilityName);
+
+                foreach (UtilityFilter match in matches)
+                    match.IsFiltering = true;
+            }
+        }
+
+        Debug.WriteLine($"Got GitHub details from CLI: {cliResponse.Title} #{cliResponse.IssueNumber}");
     }
 
     private void ReadSettingsFile(ZipEntryItem entry)
     {
-        loadingSettingsFile = true;
+        if (loadingSettingsFile)
+            return;
+
+        loadingSettingsFile = true; 
 
         using var stream = entry.Entry.Open();
         using var reader = new StreamReader(stream);

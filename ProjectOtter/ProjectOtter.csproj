@@ -47,6 +47,7 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.25936-preview" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240311000" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />
+    <PackageReference Include="SimplifiedSearch" Version="1.2.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
     <PackageReference Include="WinUIEx" Version="2.3.4" />
   </ItemGroup>
