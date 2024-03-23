@@ -21,6 +21,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private OtterFile? otterFile = new();
     private string zipPath = string.Empty;
     private bool loadingSettingsFile = false;
+    private bool hasGhCli = false;
+    private bool isWrittingToOtterFile = false;
 
     [ObservableProperty]
     private string friendlyName = string.Empty;
@@ -221,6 +223,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private async void OtterFileValueChanged()
     {
+        if (isWrittingToOtterFile)
+            return;
+
+        isWrittingToOtterFile = true;
         otterFile ??= new();
         otterFile.FriendlyName = FriendlyName;
         otterFile.GitHubIssueNumber = GitHubIssueNumber;
@@ -236,17 +242,29 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (string.IsNullOrWhiteSpace(zipPath))
             return;
 
-        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
-        ZipArchiveEntry? entry = zip.GetEntry(otterFileName);
-        entry ??= zip.CreateEntry(otterFileName);
-        entry.Delete();
-        entry = zip.CreateEntry(otterFileName);
+        try
+        {
+            using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Update);
+            ZipArchiveEntry? entry = zip.GetEntry(otterFileName);
+            entry ??= zip.CreateEntry(otterFileName);
+            entry.Delete();
+            entry = zip.CreateEntry(otterFileName);
 
-        string otterFileAsJson = JsonSerializer.Serialize(otterFile);
-        using var stream = entry.Open();
-        using StreamWriter writer = new(stream);
-        await writer.WriteAsync(otterFileAsJson);
-        await SaveCurrentItemToHistory();
+            string otterFileAsJson = JsonSerializer.Serialize(otterFile);
+            using var stream = entry.Open();
+            using StreamWriter writer = new(stream);
+            await writer.WriteAsync(otterFileAsJson);
+            await SaveCurrentItemToHistory();
+        }
+        catch (IOException)
+        {
+            otterFileDebounceTimer.Stop();
+            otterFileDebounceTimer.Start();
+        }
+        finally
+        {
+            isWrittingToOtterFile = false;
+        }
     }
 
     partial void OnFriendlyNameChanged(string value)
@@ -381,7 +399,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         try
         {
-            using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+            ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
 
             if (zip.Entries.Count > 0)
             {
@@ -427,7 +445,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         await SaveCurrentItemToHistory();
     }
 
-    private void OpenBaselineFiles()
+    private async void OpenBaselineFiles()
     {
         FileContent = string.Empty;
 
@@ -469,13 +487,35 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 continue;
             }
+            else
+            {
+                if (hasGhCli)
+                {
+                    GitHubResponse? cliResponse = await GitHubCliHelper.GetIssueDetails(FileName);
+
+                    if (cliResponse is not null)
+                    {
+                        FriendlyName = cliResponse.Title;
+                        GitHubIssueNumber = cliResponse.IssueNumber;
+                    }
+                }
+            }
 
             if (entry is null)
                 continue;
 
             if (file == "settings.json")
             {
-                ReadSettingsFile(entry);
+                try
+                {
+                    ReadSettingsFile(entry);
+                }
+                catch(Exception e)
+                {
+                    FileContent += "Failed to read settings.json";
+                    FileContent += Environment.NewLine;
+                    FileContent += e.Message;
+                }
             }
 
             FileContent += entry.Entry.FullName;
@@ -600,6 +640,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     public async void OnNavigatedTo(object parameter)
     {
         await LoadPreviousItems();
+        hasGhCli = await GitHubCliHelper.IsGhCliInstalled();
     }
 
     public void OnNavigatedFrom()

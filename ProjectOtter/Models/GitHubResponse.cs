@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ProjectOtter.Models;
+﻿namespace ProjectOtter.Models;
 
 public record GitHubResponse
 {
