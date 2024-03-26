@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-
-namespace ProjectOtter.Models;
+﻿namespace ProjectOtter.Models;
 
 public record UtilityFilter
 {

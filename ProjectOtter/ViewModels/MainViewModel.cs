@@ -669,14 +669,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         if (!UtilitiesFilter.Any(x => x.IsFiltering))
         {
-            // look at the labels on the github issue and add them to the filter
-            foreach (string label in cliResponse.Labels)
+            // look at the labels on the GitHub issue and add them to the filter
+            List<string> productFilters = LabelHelper.GetProducts(cliResponse.Labels);
+            foreach (string product in productFilters)
             {
-                IList<UtilityFilter> matches = await UtilitiesFilter.SimplifiedSearchAsync(label, x => x.UtilityName);
-
-                foreach (UtilityFilter match in matches)
-                    match.IsFiltering = true;
+                UtilityFilter? filter = UtilitiesFilter.FirstOrDefault(x => x.UtilityName == product);
+                if (filter != null)
+                    filter.IsFiltering = true;
             }
+
+            FilterOnUtility = true;
         }
 
         Debug.WriteLine($"Got GitHub details from CLI: {cliResponse.Title} #{cliResponse.IssueNumber}");
