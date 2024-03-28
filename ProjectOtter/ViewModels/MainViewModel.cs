@@ -218,9 +218,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 double totalDaysFromBugReport = (BugReportDateTime.Value - entry.CreationDate.Value).TotalDays;
 
-                if (totalDaysFromBugReport < 7)
+                if (totalDaysFromBugReport > 7)
                     isOld = true;
             }
+
             if (FilterOnUtility )
             {
                 bool isInFilter = false;
