@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Data;
 
 namespace ProjectOtter.Converters;
-internal class BoolToWordWrapConverter: IValueConverter
+internal class BoolToWordWrapConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {

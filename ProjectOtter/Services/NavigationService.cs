@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProjectOtter.Services;
 

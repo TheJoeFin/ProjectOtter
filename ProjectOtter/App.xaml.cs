@@ -6,7 +6,6 @@ using ProjectOtter.Activation;
 using ProjectOtter.Contracts.Services;
 using ProjectOtter.Core.Contracts.Services;
 using ProjectOtter.Core.Services;
-using ProjectOtter.Helpers;
 using ProjectOtter.Models;
 using ProjectOtter.Services;
 using ProjectOtter.ViewModels;

@@ -19,7 +19,7 @@ public class OtterFile
         foreach (string utilityName in RelatedUtilities)
             if (relativePath.Contains(utilityName))
                 return true;
-        
+
         foreach (Version version in RelatedVersions)
             if (relativePath.Contains(version.ToString()))
                 return true;

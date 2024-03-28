@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Windowing;
 using ProjectOtter.Helpers;
-using ProjectOtter.ViewModels;
 using Windows.UI.ViewManagement;
 
 namespace ProjectOtter;

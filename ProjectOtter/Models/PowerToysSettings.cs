@@ -16,7 +16,7 @@ public class PowerToysSettings
 
     public PowerToysSettings()
     {
-        
+
     }
 }
 

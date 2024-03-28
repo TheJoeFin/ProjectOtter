@@ -5,8 +5,6 @@ using ProjectOtter.Core.Contracts.Services;
 using ProjectOtter.Core.Helpers;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
-
-using Windows.ApplicationModel;
 using Windows.Storage;
 
 namespace ProjectOtter.Services;

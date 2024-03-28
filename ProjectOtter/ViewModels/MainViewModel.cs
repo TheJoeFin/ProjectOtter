@@ -6,7 +6,6 @@ using ProjectOtter.Contracts.Services;
 using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
-using SimplifiedSearch;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -222,7 +221,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     isOld = true;
             }
 
-            if (FilterOnUtility )
+            if (FilterOnUtility)
             {
                 bool isInFilter = false;
 
@@ -574,7 +573,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     ReadSettingsFile(entry);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     FileContent += "Failed to read settings.json";
                     FileContent += Environment.NewLine;
@@ -711,7 +710,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (loadingSettingsFile)
             return;
 
-        loadingSettingsFile = true; 
+        loadingSettingsFile = true;
 
         using var stream = entry.Entry.Open();
         using var reader = new StreamReader(stream);
@@ -794,7 +793,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
 
         foreach (PreviousItem hisItem in prevHistory)
-            PreviousItems.Add(hisItem);
+            if (File.Exists(hisItem.ZipPath))
+                PreviousItems.Add(hisItem);
     }
 
     private async Task SaveCurrentItemToHistory()
@@ -803,7 +803,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
 
         string displayText = @"// no GitHub number or friendly name set";
-        
+
         if (GitHubIssueNumber != 1)
             displayText = $"#{GitHubIssueNumber} {FriendlyName}";
 
