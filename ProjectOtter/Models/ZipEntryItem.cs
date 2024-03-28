@@ -1,8 +1,9 @@
 ﻿using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace ProjectOtter.Models;
 
-public class ZipEntryItem
+public partial class ZipEntryItem
 {
     public ZipArchiveEntry Entry { get; set; }
 
@@ -14,13 +15,28 @@ public class ZipEntryItem
 
     public string Content { get; set; } = string.Empty;
 
-    public bool IsEmpty => InitalLength == 0;
+    public bool IsEmpty => InitialLength == 0;
 
-    public int InitalLength { get; set; }
+    public int InitialLength { get; set; }
+
+    public DateTime? CreationDate { get; set; }
 
     public ZipEntryItem(ZipArchiveEntry entry)
     {
         Entry = entry;
-        InitalLength = (int)Entry.Length;
+        InitialLength = (int)Entry.Length;
+
+        // Regex to match YYYY-MM-DD
+        Match match = DateRegex().Match(Name);
+        if (match.Success)
+        {
+            bool success = DateTime.TryParse(match.Value, out DateTime result);
+
+            if (success)
+                CreationDate = result;
+        }
     }
+
+    [GeneratedRegex("20\\d{2}-\\d{2}-\\d{2}")]
+    private static partial Regex DateRegex();
 }

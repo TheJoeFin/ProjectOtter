@@ -179,19 +179,29 @@
                         IsChecked="{x:Bind ViewModel.FilterOnUtility, Mode=TwoWay}">
                         <ToggleSplitButton.Flyout>
                             <Flyout>
-                                <StackPanel Orientation="Vertical">
-                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.UtilitiesFilter, Mode=TwoWay}">
-                                        <DataTemplate x:DataType="models:UtilityFilter">
-                                            <Grid>
-                                                <CheckBox
-                                                    HorizontalAlignment="Left"
-                                                    VerticalAlignment="Center"
-                                                    Content="{x:Bind UtilityName}"
-                                                    IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsRepeater>
-                                </StackPanel>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+                                    <CheckBox
+                                        Grid.Row="0"
+                                        Content="Filter out old logs"
+                                        IsChecked="{x:Bind ViewModel.FilterOutOldLogs, Mode=TwoWay}" />
+                                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.UtilitiesFilter, Mode=TwoWay}">
+                                            <DataTemplate x:DataType="models:UtilityFilter">
+                                                <Grid>
+                                                    <CheckBox
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Content="{x:Bind UtilityName}"
+                                                        IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+                                </Grid>
                             </Flyout>
                         </ToggleSplitButton.Flyout>
                         <ToggleSplitButton.Content>
@@ -240,7 +250,7 @@
                                     <TextBlock
                                         x:Name="LengthText"
                                         Grid.Column="1"
-                                        Text="{x:Bind InitalLength}" />
+                                        Text="{x:Bind InitialLength}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

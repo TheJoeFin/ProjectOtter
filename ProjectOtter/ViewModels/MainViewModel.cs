@@ -125,6 +125,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [ObservableProperty]
     private PreviousItem? selectedPreviousItem;
 
+    [ObservableProperty]
+    private bool filterOutOldLogs = true;
+
     public ObservableCollection<UtilityFilter> UtilitiesFilter { get; set; } = new();
 
     public List<ZipEntryItem> AllZipArchiveEntries { get; set; } = new();
@@ -135,7 +138,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool showFailedToReadFile = false;
 
     [ObservableProperty]
-    private bool filterOnUtility = false;
+    private bool filterOnUtility = true;
 
     [ObservableProperty]
     private string errorMessage = string.Empty;
@@ -209,10 +212,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             bool shouldAdd = true;
 
-            if (FilterOnUtility)
+            bool isOld = false;
+
+            if (FilterOutOldLogs && BugReportDateTime is not null && entry.CreationDate is not null)
+            {
+                double totalDaysFromBugReport = (BugReportDateTime.Value - entry.CreationDate.Value).TotalDays;
+
+                if (totalDaysFromBugReport < 7)
+                    isOld = true;
+            }
+            if (FilterOnUtility )
             {
                 bool isInFilter = false;
-                foreach (UtilityFilter utilityFilter in UtilitiesFilter)
+
+                var enabledUtilityFilters = UtilitiesFilter.Where(x => x.IsFiltering);
+
+                foreach (UtilityFilter utilityFilter in enabledUtilityFilters)
                 {
                     if (!utilityFilter.IsFiltering)
                         continue;
@@ -224,8 +239,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     }
                 }
 
+                if (!enabledUtilityFilters.Any())
+                    isInFilter = true;
+
                 shouldAdd = isInFilter;
             }
+
+            if (FilterOutOldLogs && isOld && FilterOnUtility)
+                shouldAdd = false;
 
             if (HideEmptyFiles && entry.IsEmpty)
                 shouldAdd = false;
@@ -667,7 +688,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         FriendlyName = cliResponse.Title;
         GitHubIssueNumber = cliResponse.IssueNumber;
 
-        if (!UtilitiesFilter.Any(x => x.IsFiltering))
+        if (UtilitiesFilter.Where(x => x.IsFiltering).Count() <= 1)
         {
             // look at the labels on the GitHub issue and add them to the filter
             List<string> productFilters = LabelHelper.GetProducts(cliResponse.Labels);
