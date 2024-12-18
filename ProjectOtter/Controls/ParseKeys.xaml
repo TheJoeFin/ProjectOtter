@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ProjectOtter.Controls.ParseKeys"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ProjectOtter.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Orientation="Vertical">
+        <TextBlock Text="Enter keys text to parse:" />
+        <TextBox
+            x:Name="InputKeysTextBox"
+            AcceptsReturn="True"
+            Text="{x:Bind EntryText,
+                          Mode=OneWay}"
+            TextChanged="InputKeysTextBox_TextChanged" />
+        <TextBlock x:Name="ParsedKeysTextBlock" IsTextSelectionEnabled="True" />
+    </StackPanel>
+</UserControl>

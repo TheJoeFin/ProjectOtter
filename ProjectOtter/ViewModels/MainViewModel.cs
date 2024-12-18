@@ -7,10 +7,12 @@ using ProjectOtter.Contracts.ViewModels;
 using ProjectOtter.Helpers;
 using ProjectOtter.Models;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System;
@@ -151,6 +153,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [ObservableProperty]
     private string filterText = string.Empty;
 
+    [ObservableProperty]
+    private string remappedKeys = string.Empty;
+
+    [ObservableProperty]
+    private string otterFileNotes = string.Empty;
+
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
     private readonly DispatcherTimer renameFileClosedTimer = new();
@@ -279,6 +287,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFile ??= new();
         otterFile.FriendlyName = FriendlyName;
         otterFile.GitHubIssueNumber = GitHubIssueNumber;
+        otterFile.Notes = OtterFileNotes;
 
         List<string> utilitiesWithFilteringOn = UtilitiesFilter
             .Where(f => f.IsFiltering == true)
@@ -316,6 +325,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             isWrittingToOtterFile = false;
             Debug.WriteLine($"{randomId}:id: writing updates to OtterFile done");
         }
+    }
+
+    partial void OnOtterFileNotesChanged(string value)
+    {
+        otterFileDebounceTimer.Stop();
+        otterFileDebounceTimer.Start();
     }
 
     partial void OnFriendlyNameChanged(string value)
@@ -439,6 +454,30 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         await TryToOpenThisPath(file.Path);
     }
 
+    [RelayCommand]
+    private void DraggingOver(object parameters)
+    {
+        if (parameters is DragEventArgs args && args.DataView.Contains(StandardDataFormats.StorageItems))
+            args.AcceptedOperation = DataPackageOperation.Copy;
+    }
+
+    [RelayCommand]
+    private async Task Drop(object parameters)
+    {
+        if (parameters is not DragEventArgs args)
+            return;
+
+        DragOperationDeferral deferral = args.GetDeferral();
+        args.Handled = true;
+        IReadOnlyList<IStorageItem> storageItems = await args.DataView.GetStorageItemsAsync();
+        deferral.Complete();
+        if (storageItems.Count == 0)
+            return;
+
+        if (storageItems[0] is StorageFile file)
+            await TryToOpenThisPath(file.Path);
+    }
+
     private async Task TryToOpenThisPath(string path)
     {
         ShowFailedToReadFile = false;
@@ -522,16 +561,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         FileContent = string.Empty;
 
-        List<string> filesToRead = new()
-        {
+        List<string> filesToRead =
+        [
             "otterFile.json",
             "settings.json",
             "UpdateState.json",
             "windows-settings.txt",
             "windows-version.txt",
-        };
+            "Keyboard Manager/default.json"
+        ];
 
         bool readOtterFile = false;
+        JsonSerializerOptions option = new()
+        {
+            WriteIndented = true,
+        };
 
         foreach (string file in filesToRead)
         {
@@ -556,6 +600,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     GitHubIssueNumber = otterFile.GitHubIssueNumber;
                     FilterText = otterFile.FilteringText;
                     readOtterFile = true;
+                    OtterFileNotes = otterFile.Notes;
                 }
                 catch
                 {
@@ -581,6 +626,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
             }
 
+            if (file == "Keyboard Manager/default.json")
+            {
+                using var streamKeys = entry.Entry.Open();
+                using var readerKeys = new StreamReader(streamKeys);
+                RemappedKeys = readerKeys.ReadToEnd();
+                continue;
+            }
+
             FileContent += entry.Entry.FullName;
             FileContent += Environment.NewLine;
             using var stream = entry.Entry.Open();
@@ -588,11 +641,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             if (Path.GetExtension(entry.Entry.FullName) == ".json")
             {
-                JsonSerializerOptions option = new()
-                {
-                    WriteIndented = true,
-                };
-
                 FileContent += JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd()), option);
             }
             else
@@ -813,8 +861,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             DisplayText = displayText,
         };
 
-        if (PreviousItems.Contains(previousItem))
-            PreviousItems.Remove(previousItem);
+        PreviousItems.Remove(previousItem);
         PreviousItems.Insert(0, previousItem);
 
         await LocalSettingsService.SaveSettingAsync(nameof(PreviousItems), PreviousItems);
