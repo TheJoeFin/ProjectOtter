@@ -6,8 +6,8 @@ public class OtterFile
     public string Notes { get; set; } = string.Empty;
     public string GitHubIssueUrl => $"https://github.com/microsoft/PowerToys/issues/{GitHubIssueNumber}";
     public int GitHubIssueNumber { get; set; }
-    public IEnumerable<string> RelatedUtilities { get; set; } = Enumerable.Empty<string>();
-    public IEnumerable<Version> RelatedVersions { get; set; } = Enumerable.Empty<Version>();
+    public IEnumerable<string> RelatedUtilities { get; set; } = [];
+    public IEnumerable<Version> RelatedVersions { get; set; } = [];
     public string FilteringText { get; set; } = string.Empty;
 
     public OtterFile()

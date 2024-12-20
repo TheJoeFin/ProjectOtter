@@ -13,8 +13,7 @@
         <TextBox
             x:Name="InputKeysTextBox"
             AcceptsReturn="True"
-            Text="{x:Bind EntryText,
-                          Mode=OneWay}"
+            Text="{x:Bind EntryText, Mode=OneWay}"
             TextChanged="InputKeysTextBox_TextChanged" />
         <TextBlock x:Name="ParsedKeysTextBlock" IsTextSelectionEnabled="True" />
     </StackPanel>

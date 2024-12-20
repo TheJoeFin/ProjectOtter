@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -116,6 +117,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 22000 => "Windows 11 version 21H2",
                 22621 => "Windows 11 version 22H2",
                 22631 => "Windows 11 version 23H2",
+                26100 => "Windows 11 version 24H2",
                 _ => "unknown",
             };
         }
@@ -289,10 +291,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         otterFile.GitHubIssueNumber = GitHubIssueNumber;
         otterFile.Notes = OtterFileNotes;
 
-        List<string> utilitiesWithFilteringOn = UtilitiesFilter
+        List<string> utilitiesWithFilteringOn = [.. UtilitiesFilter
             .Where(f => f.IsFiltering == true)
-            .Select(filter => filter.UtilityName)
-            .ToList();
+            .Select(filter => filter.UtilityName)];
 
         otterFile.RelatedUtilities = utilitiesWithFilteringOn;
         otterFile.FilteringText = FilterText;
@@ -336,6 +337,25 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     partial void OnFriendlyNameChanged(string value)
     {
         otterFileDebounceTimer.Stop();
+
+        Regex pullOutGhNumber = new(@"\s#\d+\b*$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+        MatchCollection matches = pullOutGhNumber.Matches(value);
+
+        if (matches.Count > 0
+            && matches[0] is Match match
+            && match.Success)
+        {
+            int length = match.Captures[0].Length;
+            string numberString = match.Value;
+            numberString = numberString.Trim().Remove(0,1);
+            if (int.TryParse(numberString, out int ghNumber))
+            {
+                GitHubIssueNumber = ghNumber;
+                FriendlyName = value.Substring(0, value.Length - length);
+            }
+        }
+
         otterFileDebounceTimer.Start();
     }
 
@@ -455,7 +475,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand]
-    private void DraggingOver(object parameters)
+    private static void DraggingOver(object parameters)
     {
         if (parameters is DragEventArgs args && args.DataView.Contains(StandardDataFormats.StorageItems))
             args.AcceptedOperation = DataPackageOperation.Copy;
