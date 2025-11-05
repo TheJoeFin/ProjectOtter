@@ -496,6 +496,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     partial void OnSelectedEntryChanged(ZipEntryItem? value)
     {
+        // Skip loading content when in compare mode - the diff will be shown instead
+        if (IsComparing)
+            return;
+
         if (value is null)
         {
             FileContent = string.Empty;

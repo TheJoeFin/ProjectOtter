@@ -341,6 +341,7 @@
                         Grid.Column="0"
                         Margin="12"
                         VerticalAlignment="Top"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                         Message="Click a file to compare with the currently selected file"
                         Severity="Informational" />
