@@ -21,6 +21,14 @@ using WinRT.Interop;
 
 namespace ProjectOtter.ViewModels;
 
+public enum ComparisonMode
+{
+    All,
+    OnlyInOriginal,
+    OnlyInSelected,
+    InBothFiles
+}
+
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
     private string otterFileName = "otterFile.json";
@@ -178,6 +186,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     [ObservableProperty]
     private string compareWithFileName = string.Empty;
+
+    [ObservableProperty]
+    private ComparisonMode comparisonMode = ComparisonMode.All;
 
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
@@ -555,6 +566,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    partial void OnComparisonModeChanged(ComparisonMode value)
+    {
+        // Re-run the comparison with the new mode
+        if (IsComparing && CompareWithEntry is not null)
+        {
+            PerformComparison();
+        }
+    }
+
     private void ResetCollectionToAll()
     {
         DisplayZipEntries.Clear();
@@ -642,8 +662,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             // Compute diff
             var diffLines = Helpers.DiffHelper.ComputeDiff(originalContent, modifiedContent);
 
+            // Filter based on comparison mode
+            var filteredLines = ComparisonMode switch
+            {
+                ComparisonMode.OnlyInOriginal => diffLines.Where(line =>
+                    line.Type == Helpers.DiffLineType.Deleted ||
+                    line.Type == Helpers.DiffLineType.Modified).ToList(),
+                ComparisonMode.OnlyInSelected => diffLines.Where(line =>
+                    line.Type == Helpers.DiffLineType.Added ||
+                    line.Type == Helpers.DiffLineType.Modified).ToList(),
+                ComparisonMode.InBothFiles => diffLines.Where(line =>
+                    line.Type == Helpers.DiffLineType.Unchanged).ToList(),
+                _ => diffLines // ComparisonMode.All shows everything
+            };
+
             // Format for display (using side-by-side view)
-            FileContent = Helpers.DiffHelper.FormatDiffAsSideBySide(diffLines);
+            FileContent = Helpers.DiffHelper.FormatDiffAsSideBySide(filteredLines);
         }
         catch (Exception ex)
         {

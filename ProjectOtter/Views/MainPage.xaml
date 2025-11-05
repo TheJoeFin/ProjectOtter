@@ -18,6 +18,7 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisConverter" />
         <converters:EmptyCollectionToBool x:Key="EmptyCollectionToBool" />
+        <converters:GenericEnumToBooleanConverter x:Key="EnumToBoolConverter" />
     </Page.Resources>
 
     <Grid>
@@ -323,7 +324,27 @@
                         Background="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}"
                         IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                         Message="Click a file to compare with the currently selected file"
-                        Severity="Informational" />
+                        Severity="Informational">
+                        <InfoBar.Content>
+                            <StackPanel Orientation="Vertical" Spacing="8" Margin="0,8,0,0">
+                                <TextBlock Text="Show:" FontWeight="SemiBold" />
+                                <RadioButtons SelectedIndex="0">
+                                    <RadioButton
+                                        Content="All lines"
+                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All}" />
+                                    <RadioButton
+                                        Content="Lines only in original file"
+                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInOriginal}" />
+                                    <RadioButton
+                                        Content="Lines only in selected file"
+                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInSelected}" />
+                                    <RadioButton
+                                        Content="Lines in both files"
+                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=InBothFiles}" />
+                                </RadioButtons>
+                            </StackPanel>
+                        </InfoBar.Content>
+                    </InfoBar>
 
                     <RelativePanel
                         Grid.Row="1"
