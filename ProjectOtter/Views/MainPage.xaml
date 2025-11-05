@@ -24,8 +24,7 @@
         <SplitView
             x:Name="MainSplitView"
             DisplayMode="Inline"
-            IsPaneOpen="{x:Bind ViewModel.IsToolsPaneOpen,
-                                Mode=TwoWay}"
+            IsPaneOpen="{x:Bind ViewModel.IsToolsPaneOpen, Mode=TwoWay}"
             OpenPaneLength="340"
             PanePlacement="Right">
             <SplitView.Content>
@@ -133,8 +132,7 @@
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             IsTextSelectionEnabled="True"
-                            Text="{x:Bind ViewModel.FileName,
-                                          Mode=TwoWay}" />
+                            Text="{x:Bind ViewModel.FileName, Mode=TwoWay}" />
                     </StackPanel>
 
                     <Grid
@@ -150,9 +148,7 @@
                             x:Name="FriendlyName"
                             Grid.Column="0"
                             PlaceholderText="Friendly Name or Title"
-                            Text="{x:Bind ViewModel.FriendlyName,
-                                          Mode=TwoWay,
-                                          UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{x:Bind ViewModel.FriendlyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                         <NumberBox
                             x:Name="IssueNumber"
@@ -161,18 +157,14 @@
                             VerticalAlignment="Center"
                             Minimum="0"
                             SpinButtonPlacementMode="Inline"
-                            Text="{x:Bind ViewModel.GitHubIssueNumber,
-                                          Mode=TwoWay,
-                                          UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{x:Bind ViewModel.GitHubIssueNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                         <HyperlinkButton
                             x:Name="GitHubLink"
                             Grid.Column="2"
                             Width="118"
-                            Content="{x:Bind ViewModel.IssueNumberText,
-                                             Mode=OneWay}"
-                            NavigateUri="{x:Bind ViewModel.GitHubIssueURL,
-                                                 Mode=OneWay}">
+                            Content="{x:Bind ViewModel.IssueNumberText, Mode=OneWay}"
+                            NavigateUri="{x:Bind ViewModel.GitHubIssueURL, Mode=OneWay}">
                             <HyperlinkButton.ContextFlyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem
@@ -198,17 +190,14 @@
                         <ToggleSwitch
                             x:Name="HideZeros"
                             Grid.Column="0"
-                            IsOn="{x:Bind ViewModel.HideEmptyFiles,
-                                          Mode=TwoWay}"
+                            IsOn="{x:Bind ViewModel.HideEmptyFiles, Mode=TwoWay}"
                             OffContent="Hide empty"
                             OnContent="Hide empty" />
                         <TextBox
                             x:Name="FilterSearchBox"
                             Grid.Column="1"
                             PlaceholderText="Filter files..."
-                            Text="{x:Bind ViewModel.FilterText,
-                                          UpdateSourceTrigger=PropertyChanged,
-                                          Mode=TwoWay}">
+                            Text="{x:Bind ViewModel.FilterText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
                             <TextBox.KeyboardAccelerators>
                                 <KeyboardAccelerator Key="F" Modifiers="Control" />
                             </TextBox.KeyboardAccelerators>
@@ -216,8 +205,7 @@
                         <ToggleSplitButton
                             x:Name="FilterToggleSplitButton"
                             Grid.Column="2"
-                            IsChecked="{x:Bind ViewModel.FilterOnUtility,
-                                               Mode=TwoWay}">
+                            IsChecked="{x:Bind ViewModel.FilterOnUtility, Mode=TwoWay}">
                             <ToggleSplitButton.Flyout>
                                 <Flyout>
                                     <Grid>
@@ -230,19 +218,16 @@
                                         <CheckBox
                                             Grid.Row="0"
                                             Content="Filter out old logs"
-                                            IsChecked="{x:Bind ViewModel.FilterOutOldLogs,
-                                                               Mode=TwoWay}" />
+                                            IsChecked="{x:Bind ViewModel.FilterOutOldLogs, Mode=TwoWay}" />
                                         <CheckBox
                                             Grid.Row="1"
                                             Content="Search in file content"
-                                            IsChecked="{x:Bind ViewModel.SearchInContent,
-                                                               Mode=TwoWay}"
+                                            IsChecked="{x:Bind ViewModel.SearchInContent, Mode=TwoWay}"
                                             ToolTipService.ToolTip="Search for text within file contents (may be slow for large files)" />
                                         <CheckBox
                                             Grid.Row="2"
                                             Content="Search only filtered files"
-                                            IsChecked="{x:Bind ViewModel.SearchOnlyFilteredFiles,
-                                                               Mode=TwoWay}"
+                                            IsChecked="{x:Bind ViewModel.SearchOnlyFilteredFiles, Mode=TwoWay}"
                                             IsEnabled="{x:Bind ViewModel.SearchInContent, Mode=OneWay}"
                                             ToolTipService.ToolTip="When enabled, content search will only search within files that match other filters" />
                                         <StackPanel Grid.Row="3" Orientation="Vertical">
@@ -253,8 +238,7 @@
                                                             HorizontalAlignment="Left"
                                                             VerticalAlignment="Center"
                                                             Content="{x:Bind UtilityName}"
-                                                            IsChecked="{x:Bind IsFiltering,
-                                                                               Mode=TwoWay}" />
+                                                            IsChecked="{x:Bind IsFiltering, Mode=TwoWay}" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </ItemsRepeater>
@@ -277,9 +261,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Source="/Assets/StoreLogo.Scale-400.png"
-                        Visibility="{x:Bind ViewModel.DisplayZipEntries.Count,
-                                            Mode=OneWay,
-                                            Converter={StaticResource EmptyCollectionToVisConverter}}" />
+                        Visibility="{x:Bind ViewModel.DisplayZipEntries.Count, Mode=OneWay, Converter={StaticResource EmptyCollectionToVisConverter}}" />
                     <ProgressRing
                         Grid.Row="2"
                         Grid.Column="0"
@@ -287,18 +269,16 @@
                         Height="200"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        IsActive="{x:Bind ViewModel.OpenFileCommand.IsRunning,
-                                          Mode=OneWay}" />
+                        IsActive="{x:Bind ViewModel.OpenFileCommand.IsRunning, Mode=OneWay}" />
                     <ProgressRing
                         Grid.Row="2"
                         Grid.Column="0"
                         Width="100"
                         Height="100"
+                        Margin="12"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
-                        Margin="12"
-                        IsActive="{x:Bind ViewModel.IsSearchingContent,
-                                          Mode=OneWay}">
+                        IsActive="{x:Bind ViewModel.IsSearchingContent, Mode=OneWay}">
                         <ToolTipService.ToolTip>
                             <TextBlock Text="Searching file contents..." />
                         </ToolTipService.ToolTip>
@@ -309,8 +289,7 @@
                             Background="{ThemeResource CardBackgroundFillColorSecondary}"
                             IsItemClickEnabled="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                             ItemsSource="{x:Bind ViewModel.DisplayZipEntries}"
-                            SelectedItem="{x:Bind ViewModel.SelectedEntry,
-                                                  Mode=TwoWay}">
+                            SelectedItem="{x:Bind ViewModel.SelectedEntry, Mode=TwoWay}">
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="models:ZipEntryItem">
                                     <Grid>
@@ -341,7 +320,7 @@
                         Grid.Column="0"
                         Margin="12"
                         VerticalAlignment="Top"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        Background="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}"
                         IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                         Message="Click a file to compare with the currently selected file"
                         Severity="Informational" />
@@ -366,8 +345,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="Cascadia Mono"
                                     IsTextSelectionEnabled="True"
-                                    Text="{x:Bind ViewModel.SelectedEntry.Name,
-                                                  Mode=OneWay}" />
+                                    Text="{x:Bind ViewModel.SelectedEntry.Name, Mode=OneWay}" />
                                 <TextBlock
                                     x:Name="CompareIndicator"
                                     VerticalAlignment="Center"
@@ -380,8 +358,7 @@
                                     VerticalAlignment="Center"
                                     FontFamily="Cascadia Mono"
                                     IsTextSelectionEnabled="True"
-                                    Text="{x:Bind ViewModel.CompareWithFileName,
-                                                  Mode=OneWay}"
+                                    Text="{x:Bind ViewModel.CompareWithFileName, Mode=OneWay}"
                                     Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
                             </StackPanel>
                         </ScrollViewer>
@@ -429,15 +406,12 @@
                                         <TextBox
                                             AcceptsReturn="True"
                                             PlaceholderText="add notes for this file"
-                                            Text="{x:Bind ViewModel.OtterFileNotes,
-                                                          Mode=TwoWay,
-                                                          UpdateSourceTrigger=PropertyChanged}" />
+                                            Text="{x:Bind ViewModel.OtterFileNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <ScrollViewer Grid.Row="1">
                                             <TextBlock
                                                 FontFamily="Cascadia Mono"
                                                 IsTextSelectionEnabled="True"
-                                                Text="{x:Bind ViewModel.StartingText,
-                                                              Mode=OneWay}" />
+                                                Text="{x:Bind ViewModel.StartingText, Mode=OneWay}" />
                                         </ScrollViewer>
                                     </Grid>
                                 </Flyout>
@@ -464,11 +438,8 @@
                         AcceptsReturn="True"
                         FontFamily="Cascadia Mono"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        Text="{x:Bind ViewModel.FileContent,
-                                      Mode=TwoWay}"
-                        TextWrapping="{x:Bind WrapTextToggle.IsOn,
-                                              Converter={StaticResource BoolToWrapConverter},
-                                              Mode=OneWay}" />
+                        Text="{x:Bind ViewModel.FileContent, Mode=TwoWay}"
+                        TextWrapping="{x:Bind WrapTextToggle.IsOn, Converter={StaticResource BoolToWrapConverter}, Mode=OneWay}" />
 
                     <RelativePanel
                         Grid.Row="3"
@@ -484,8 +455,7 @@
                             x:Name="CountNumberText"
                             VerticalAlignment="Center"
                             RelativePanel.RightOf="StaticCountText"
-                            Text="{x:Bind ViewModel.DisplayZipEntries.Count,
-                                          Mode=OneWay}" />
+                            Text="{x:Bind ViewModel.DisplayZipEntries.Count, Mode=OneWay}" />
                     </RelativePanel>
 
                     <controls:GridSplitter
@@ -502,16 +472,13 @@
                     </controls:GridSplitter>
 
                     <InfoBar
-                        Title="{x:Bind ViewModel.ErrorTitle,
-                                       Mode=OneWay}"
+                        Title="{x:Bind ViewModel.ErrorTitle, Mode=OneWay}"
                         Grid.Row="2"
                         Margin="20"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
-                        IsOpen="{x:Bind ViewModel.ShowFailedToReadFile,
-                                        Mode=TwoWay}"
-                        Message="{x:Bind ViewModel.ErrorMessage,
-                                         Mode=OneWay}"
+                        IsOpen="{x:Bind ViewModel.ShowFailedToReadFile, Mode=TwoWay}"
+                        Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                         Severity="Error" />
                 </Grid>
             </SplitView.Content>
@@ -546,9 +513,7 @@
                                     Maximum="1000"
                                     Minimum="0"
                                     SpinButtonPlacementMode="Inline"
-                                    Value="{x:Bind ViewModel.KeyAsInt,
-                                                   Mode=TwoWay,
-                                                   UpdateSourceTrigger=Default}" />
+                                    Value="{x:Bind ViewModel.KeyAsInt, Mode=TwoWay, UpdateSourceTrigger=Default}" />
                                 <TextBlock VerticalAlignment="Center" Text="{x:Bind ViewModel.KeyAsVirtualKey, Mode=OneWay}" />
                             </StackPanel>
                             <Expander Header="Remapped Shortcuts &amp; Keys">
@@ -576,9 +541,7 @@
                             <NumberBox
                                 Minimum="0"
                                 SpinButtonPlacementMode="Inline"
-                                Value="{x:Bind ViewModel.BuildNumber,
-                                               Mode=TwoWay,
-                                               UpdateSourceTrigger=Default}" />
+                                Value="{x:Bind ViewModel.BuildNumber, Mode=TwoWay, UpdateSourceTrigger=Default}" />
                             <TextBlock Text="{x:Bind ViewModel.WindowsVersion, Mode=OneWay}" />
                             <HyperlinkButton Content="More on Wikipedia..." NavigateUri="https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions" />
                         </StackPanel>
