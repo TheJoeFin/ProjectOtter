@@ -307,6 +307,7 @@
                         <ListView
                             x:Name="ContentsListView"
                             Background="{ThemeResource CardBackgroundFillColorSecondary}"
+                            IsItemClickEnabled="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                             ItemsSource="{x:Bind ViewModel.DisplayZipEntries}"
                             SelectedItem="{x:Bind ViewModel.SelectedEntry,
                                                   Mode=TwoWay}">
@@ -333,6 +334,17 @@
                         </ListView>
                     </ScrollViewer>
 
+                    <InfoBar
+                        x:Name="CompareInfoBar"
+                        Title="Compare Mode"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Margin="12"
+                        VerticalAlignment="Top"
+                        IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
+                        Message="Click a file to compare with the currently selected file"
+                        Severity="Informational" />
+
                     <RelativePanel
                         Grid.Row="1"
                         Grid.Column="1"
@@ -345,22 +357,59 @@
                             RelativePanel.AlignVerticalCenterWithPanel="True"
                             RelativePanel.LeftOf="WrapTextToggle"
                             VerticalScrollBarVisibility="Disabled">
-                            <TextBlock
-                                x:Name="SelectedFileName"
-                                Grid.Column="1"
-                                Margin="12,0,0,0"
-                                VerticalAlignment="Center"
-                                FontFamily="Cascadia Mono"
-                                IsTextSelectionEnabled="True"
-                                Text="{x:Bind ViewModel.SelectedEntry.Name,
-                                              Mode=OneWay}" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock
+                                    x:Name="SelectedFileName"
+                                    Grid.Column="1"
+                                    Margin="12,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono"
+                                    IsTextSelectionEnabled="True"
+                                    Text="{x:Bind ViewModel.SelectedEntry.Name,
+                                                  Mode=OneWay}" />
+                                <TextBlock
+                                    x:Name="CompareIndicator"
+                                    VerticalAlignment="Center"
+                                    FontWeight="Bold"
+                                    Foreground="{ThemeResource SystemAccentColor}"
+                                    Text="⇄"
+                                    Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                <TextBlock
+                                    x:Name="CompareWithFileName"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Cascadia Mono"
+                                    IsTextSelectionEnabled="True"
+                                    Text="{x:Bind ViewModel.CompareWithFileName,
+                                                  Mode=OneWay}"
+                                    Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                            </StackPanel>
                         </ScrollViewer>
                         <ToggleSwitch
                             x:Name="WrapTextToggle"
                             OffContent="Wrap"
                             OnContent="Wrap"
                             RelativePanel.AlignVerticalCenterWithPanel="True"
-                            RelativePanel.LeftOf="HomeAppBarButton" />
+                            RelativePanel.LeftOf="CompareButton" />
+                        <Button
+                            x:Name="CompareButton"
+                            Margin="0,0,12,0"
+                            Command="{x:Bind ViewModel.StartCompareCommand}"
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            RelativePanel.LeftOf="HomeAppBarButton"
+                            ToolTipService.ToolTip="Compare with another file"
+                            Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVisibility}, ConverterParameter=Inverse}">
+                            <SymbolIcon Symbol="TwoPage" />
+                        </Button>
+                        <Button
+                            x:Name="ExitCompareButton"
+                            Margin="0,0,12,0"
+                            Command="{x:Bind ViewModel.ExitCompareCommand}"
+                            RelativePanel.AlignVerticalCenterWithPanel="True"
+                            RelativePanel.LeftOf="HomeAppBarButton"
+                            ToolTipService.ToolTip="Exit compare mode"
+                            Visibility="{x:Bind ViewModel.IsComparing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <SymbolIcon Symbol="Cancel" />
+                        </Button>
                         <Button
                             x:Name="HomeAppBarButton"
                             Margin="0,0,20,0"

@@ -170,6 +170,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [ObservableProperty]
     private string otterFileNotes = string.Empty;
 
+    [ObservableProperty]
+    private bool isComparing = false;
+
+    [ObservableProperty]
+    private ZipEntryItem? compareWithEntry;
+
+    [ObservableProperty]
+    private string compareWithFileName = string.Empty;
+
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
     private readonly DispatcherTimer renameFileClosedTimer = new();
@@ -575,6 +584,101 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         SelectedEntry = null;
         await OpenBaselineFiles();
+    }
+
+    [RelayCommand]
+    private void StartCompare()
+    {
+        if (SelectedEntry is null)
+            return;
+
+        IsComparing = true;
+        CompareWithEntry = null;
+        CompareWithFileName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void SelectCompareFile(ZipEntryItem? entry)
+    {
+        if (entry is null || SelectedEntry is null || !IsComparing)
+            return;
+
+        CompareWithEntry = entry;
+        CompareWithFileName = entry.Name;
+        PerformComparison();
+    }
+
+    [RelayCommand]
+    private void ExitCompare()
+    {
+        IsComparing = false;
+        CompareWithEntry = null;
+        CompareWithFileName = string.Empty;
+
+        // Restore original file content
+        if (SelectedEntry is not null)
+        {
+            var temp = SelectedEntry;
+            SelectedEntry = null;
+            SelectedEntry = temp;
+        }
+    }
+
+    private void PerformComparison()
+    {
+        if (SelectedEntry is null || CompareWithEntry is null || string.IsNullOrWhiteSpace(zipPath))
+            return;
+
+        try
+        {
+            // Get content for both files
+            string originalContent = GetFileContent(SelectedEntry);
+            string modifiedContent = GetFileContent(CompareWithEntry);
+
+            // Compute diff
+            var diffLines = Helpers.DiffHelper.ComputeDiff(originalContent, modifiedContent);
+
+            // Format for display (using side-by-side view)
+            FileContent = Helpers.DiffHelper.FormatDiffAsSideBySide(diffLines);
+        }
+        catch (Exception ex)
+        {
+            FileContent = $"Error comparing files: {ex.Message}";
+        }
+    }
+
+    private string GetFileContent(ZipEntryItem entry)
+    {
+        using ZipArchive zip = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+        ZipArchiveEntry? zipEntry = zip.GetEntry(entry.Entry.FullName);
+
+        if (zipEntry is null)
+            return string.Empty;
+
+        using var stream = zipEntry.Open();
+        using var reader = new StreamReader(stream);
+        string content = reader.ReadToEnd();
+
+        if (entry.IsJSON)
+        {
+            JsonSerializerOptions option = new()
+            {
+                WriteIndented = true,
+            };
+
+            try
+            {
+                return JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(content), option);
+            }
+            catch
+            {
+                return content;
+            }
+        }
+        else
+        {
+            return content;
+        }
     }
 
     [RelayCommand]
