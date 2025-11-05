@@ -156,6 +156,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private string filterText = string.Empty;
 
     [ObservableProperty]
+    private bool searchInContent = false;
+
+    [ObservableProperty]
+    private bool isSearchingContent = false;
+
+    [ObservableProperty]
+    private bool searchOnlyFilteredFiles = false;
+
+    [ObservableProperty]
     private string remappedKeys = string.Empty;
 
     [ObservableProperty]
@@ -195,20 +204,54 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         OtterFileValueChanged();
     }
 
-    private void DebounceTimer_Tick(object? sender, object e)
+    private async void DebounceTimer_Tick(object? sender, object e)
     {
         debounceTimer.Stop();
         DisplayZipEntries.Clear();
 
-        FilterAndHideEntries();
+        await FilterAndHideEntriesAsync();
     }
 
     partial void OnFilterOnUtilityChanged(bool value)
     {
-        FilterAndHideEntries();
+        _ = FilterAndHideEntriesAsync();
+    }
+
+    private async Task<bool> SearchInFileContentAsync(ZipEntryItem entry, string searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return false;
+
+        try
+        {
+            // Load content if not already cached
+            if (string.IsNullOrEmpty(entry.Content))
+            {
+                using ZipArchive zipArchive = ZipFile.Open(zipPath, ZipArchiveMode.Read);
+                ZipArchiveEntry? zipEntry = zipArchive.GetEntry(entry.Entry.FullName);
+
+                if (zipEntry is null)
+                    return false;
+
+                using var stream = zipEntry.Open();
+                using var reader = new StreamReader(stream);
+                entry.Content = await reader.ReadToEndAsync();
+            }
+
+            return entry.Content.Contains(searchText, StringComparison.InvariantCultureIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void FilterAndHideEntries()
+    {
+        _ = FilterAndHideEntriesAsync();
+    }
+
+    private async Task FilterAndHideEntriesAsync()
     {
         DisplayZipEntries.Clear();
         if (!HideEmptyFiles && string.IsNullOrWhiteSpace(FilterText))
@@ -217,56 +260,123 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
-        foreach (ZipEntryItem entry in AllZipArchiveEntries)
+        IsSearchingContent = SearchInContent && !string.IsNullOrWhiteSpace(FilterText);
+
+        try
         {
-            bool shouldAdd = true;
+            // Determine which entries to search
+            var entriesToSearch = SearchOnlyFilteredFiles && SearchInContent
+                ? DisplayZipEntries.ToList()
+                : AllZipArchiveEntries;
 
-            bool isOld = false;
-
-            if (FilterOutOldLogs && BugReportDateTime is not null && entry.CreationDate is not null)
+            // If searching only filtered files but DisplayZipEntries is empty, we need to build it first
+            if (SearchOnlyFilteredFiles && SearchInContent && !DisplayZipEntries.Any())
             {
-                double totalDaysFromBugReport = (BugReportDateTime.Value - entry.CreationDate.Value).TotalDays;
+                entriesToSearch = AllZipArchiveEntries.Where(entry =>
+                {
+                    bool shouldInclude = true;
 
-                if (totalDaysFromBugReport > 7)
-                    isOld = true;
+                    // Apply non-content filters
+                    if (HideEmptyFiles && entry.IsEmpty)
+                        shouldInclude = false;
+
+                    if (FilterOutOldLogs && BugReportDateTime is not null && entry.CreationDate is not null)
+                    {
+                        double totalDaysFromBugReport = (BugReportDateTime.Value - entry.CreationDate.Value).TotalDays;
+                        if (totalDaysFromBugReport > 7)
+                            shouldInclude = false;
+                    }
+
+                    if (FilterOnUtility)
+                    {
+                        var enabledUtilityFilters = UtilitiesFilter.Where(x => x.IsFiltering);
+                        if (enabledUtilityFilters.Any())
+                        {
+                            bool isInFilter = false;
+                            foreach (UtilityFilter utilityFilter in enabledUtilityFilters)
+                            {
+                                if (entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    isInFilter = true;
+                                    break;
+                                }
+                            }
+                            if (!isInFilter)
+                                shouldInclude = false;
+                        }
+                    }
+
+                    return shouldInclude;
+                }).ToList();
             }
 
-            if (FilterOnUtility)
+            foreach (ZipEntryItem entry in entriesToSearch)
             {
-                bool isInFilter = false;
+                bool shouldAdd = true;
 
-                var enabledUtilityFilters = UtilitiesFilter.Where(x => x.IsFiltering);
+                bool isOld = false;
 
-                foreach (UtilityFilter utilityFilter in enabledUtilityFilters)
+                if (FilterOutOldLogs && BugReportDateTime is not null && entry.CreationDate is not null)
                 {
-                    if (!utilityFilter.IsFiltering)
-                        continue;
+                    double totalDaysFromBugReport = (BugReportDateTime.Value - entry.CreationDate.Value).TotalDays;
 
-                    if (entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        isInFilter = true;
-                        break;
-                    }
+                    if (totalDaysFromBugReport > 7)
+                        isOld = true;
                 }
 
-                if (!enabledUtilityFilters.Any())
-                    isInFilter = true;
+                if (FilterOnUtility)
+                {
+                    bool isInFilter = false;
 
-                shouldAdd = isInFilter;
+                    var enabledUtilityFilters = UtilitiesFilter.Where(x => x.IsFiltering);
+
+                    foreach (UtilityFilter utilityFilter in enabledUtilityFilters)
+                    {
+                        if (!utilityFilter.IsFiltering)
+                            continue;
+
+                        if (entry.Entry.FullName.Contains(utilityFilter.UtilityName, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            isInFilter = true;
+                            break;
+                        }
+                    }
+
+                    if (!enabledUtilityFilters.Any())
+                        isInFilter = true;
+
+                    shouldAdd = isInFilter;
+                }
+
+                if (FilterOutOldLogs && isOld && FilterOnUtility)
+                    shouldAdd = false;
+
+                if (HideEmptyFiles && entry.IsEmpty)
+                    shouldAdd = false;
+
+                // Check file name filter or content filter
+                if (!string.IsNullOrEmpty(FilterText))
+                {
+                    bool matchesFileName = entry.Entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase);
+                    bool matchesContent = false;
+
+                    if (SearchInContent && !matchesFileName)
+                    {
+                        // Only search content if file name doesn't match
+                        matchesContent = await SearchInFileContentAsync(entry, FilterText);
+                    }
+
+                    if (!matchesFileName && !matchesContent)
+                        shouldAdd = false;
+                }
+
+                if (shouldAdd)
+                    DisplayZipEntries.Add(entry);
             }
-
-            if (FilterOutOldLogs && isOld && FilterOnUtility)
-                shouldAdd = false;
-
-            if (HideEmptyFiles && entry.IsEmpty)
-                shouldAdd = false;
-
-            if (!string.IsNullOrEmpty(FilterText) && !entry.Entry.FullName.Contains(FilterText, StringComparison.InvariantCultureIgnoreCase))
-                shouldAdd = false;
-
-
-            if (shouldAdd)
-                DisplayZipEntries.Add(entry);
+        }
+        finally
+        {
+            IsSearchingContent = false;
         }
     }
 
@@ -406,7 +516,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    partial void OnHideEmptyFilesChanged(bool value) => FilterAndHideEntries();
+    partial void OnHideEmptyFilesChanged(bool value) => _ = FilterAndHideEntriesAsync();
 
     partial void OnFilterTextChanged(string value)
     {
@@ -415,6 +525,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         otterFileDebounceTimer.Stop();
         otterFileDebounceTimer.Start();
+    }
+
+    partial void OnSearchInContentChanged(bool value)
+    {
+        debounceTimer.Stop();
+        debounceTimer.Start();
+    }
+
+    partial void OnSearchOnlyFilteredFilesChanged(bool value)
+    {
+        if (SearchInContent)
+        {
+            debounceTimer.Stop();
+            debounceTimer.Start();
+        }
     }
 
     private void ResetCollectionToAll()
@@ -573,7 +698,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
 
         await OpenBaselineFiles();
-        FilterAndHideEntries();
+        await FilterAndHideEntriesAsync();
         await SaveCurrentItemToHistory();
     }
 
@@ -822,7 +947,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         AllZipArchiveEntries.Clear();
         UtilitiesFilter.Clear();
         FileName = "no .zip selected";
-        FilterAndHideEntries();
+        _ = FilterAndHideEntriesAsync();
     }
 
     private void UtilityFilter_FilteringChanged(object? sender, EventArgs e)

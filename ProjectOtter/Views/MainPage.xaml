@@ -224,13 +224,28 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="auto" />
                                             <RowDefinition Height="auto" />
+                                            <RowDefinition Height="auto" />
+                                            <RowDefinition Height="auto" />
                                         </Grid.RowDefinitions>
                                         <CheckBox
                                             Grid.Row="0"
                                             Content="Filter out old logs"
                                             IsChecked="{x:Bind ViewModel.FilterOutOldLogs,
                                                                Mode=TwoWay}" />
-                                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                                        <CheckBox
+                                            Grid.Row="1"
+                                            Content="Search in file content"
+                                            IsChecked="{x:Bind ViewModel.SearchInContent,
+                                                               Mode=TwoWay}"
+                                            ToolTipService.ToolTip="Search for text within file contents (may be slow for large files)" />
+                                        <CheckBox
+                                            Grid.Row="2"
+                                            Content="Search only filtered files"
+                                            IsChecked="{x:Bind ViewModel.SearchOnlyFilteredFiles,
+                                                               Mode=TwoWay}"
+                                            IsEnabled="{x:Bind ViewModel.SearchInContent, Mode=OneWay}"
+                                            ToolTipService.ToolTip="When enabled, content search will only search within files that match other filters" />
+                                        <StackPanel Grid.Row="3" Orientation="Vertical">
                                             <ItemsRepeater ItemsSource="{x:Bind ViewModel.UtilitiesFilter, Mode=TwoWay}">
                                                 <DataTemplate x:DataType="models:UtilityFilter">
                                                     <Grid>
@@ -274,6 +289,20 @@
                         VerticalAlignment="Center"
                         IsActive="{x:Bind ViewModel.OpenFileCommand.IsRunning,
                                           Mode=OneWay}" />
+                    <ProgressRing
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Width="100"
+                        Height="100"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="12"
+                        IsActive="{x:Bind ViewModel.IsSearchingContent,
+                                          Mode=OneWay}">
+                        <ToolTipService.ToolTip>
+                            <TextBlock Text="Searching file contents..." />
+                        </ToolTipService.ToolTip>
+                    </ProgressRing>
                     <ScrollViewer Grid.Row="2" Grid.Column="0">
                         <ListView
                             x:Name="ContentsListView"
