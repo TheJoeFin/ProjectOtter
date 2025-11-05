@@ -678,29 +678,60 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 modifiedContent = StripTimestamps(modifiedContent);
             }
 
-            // Compute diff
-            var diffLines = Helpers.DiffHelper.ComputeDiff(originalContent, modifiedContent);
+            // Split into lines
+            var originalLines = originalContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
+            var modifiedLines = modifiedContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
 
-            // Filter based on comparison mode
-            var filteredLines = ComparisonMode switch
+            // Use set-based operations for comparison
+            if (ComparisonMode == ComparisonMode.OnlyInOriginal)
             {
-                ComparisonMode.OnlyInOriginal => diffLines.Where(line =>
-                    line.Type == Helpers.DiffLineType.Deleted).ToList(),
-                ComparisonMode.OnlyInSelected => diffLines.Where(line =>
-                    line.Type == Helpers.DiffLineType.Added).ToList(),
-                ComparisonMode.InBothFiles => diffLines.Where(line =>
-                    line.Type == Helpers.DiffLineType.Unchanged).ToList(),
-                _ => diffLines.Where(line =>
-                    line.Type != Helpers.DiffLineType.Unchanged).ToList() // All shows only differences
-            };
-
-            // Format for display (using side-by-side view)
-            FileContent = Helpers.DiffHelper.FormatDiffAsSideBySide(filteredLines);
+                var onlyInOriginal = originalLines.Except(modifiedLines).ToList();
+                FileContent = FormatSetComparisonResult("Lines only in original file", onlyInOriginal);
+            }
+            else if (ComparisonMode == ComparisonMode.OnlyInSelected)
+            {
+                var onlyInSelected = modifiedLines.Except(originalLines).ToList();
+                FileContent = FormatSetComparisonResult("Lines only in selected file", onlyInSelected);
+            }
+            else if (ComparisonMode == ComparisonMode.InBothFiles)
+            {
+                var inBothFiles = originalLines.Intersect(modifiedLines).ToList();
+                FileContent = FormatSetComparisonResult("Lines in both files", inBothFiles);
+            }
+            else // All differences
+            {
+                // Use traditional diff for "All differences" mode
+                var diffLines = Helpers.DiffHelper.ComputeDiff(originalContent, modifiedContent);
+                var filteredLines = diffLines.Where(line =>
+                    line.Type != Helpers.DiffLineType.Unchanged).ToList();
+                FileContent = Helpers.DiffHelper.FormatDiffAsSideBySide(filteredLines);
+            }
         }
         catch (Exception ex)
         {
             FileContent = $"Error comparing files: {ex.Message}";
         }
+    }
+
+    private string FormatSetComparisonResult(string title, List<string> lines)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"=== {title} ({lines.Count} lines) ===");
+        sb.AppendLine();
+
+        if (lines.Count == 0)
+        {
+            sb.AppendLine("(No unique lines)");
+        }
+        else
+        {
+            foreach (var line in lines)
+            {
+                sb.AppendLine(line);
+            }
+        }
+
+        return sb.ToString();
     }
 
     private string StripTimestamps(string content)
