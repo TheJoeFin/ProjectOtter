@@ -190,6 +190,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [ObservableProperty]
     private ComparisonMode comparisonMode = ComparisonMode.All;
 
+    [ObservableProperty]
+    private bool ignoreTimestamps = false;
+
     private readonly DispatcherTimer debounceTimer = new();
     private readonly DispatcherTimer otterFileDebounceTimer = new();
     private readonly DispatcherTimer renameFileClosedTimer = new();
@@ -575,6 +578,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    partial void OnIgnoreTimestampsChanged(bool value)
+    {
+        // Re-run the comparison with the new timestamp setting
+        if (IsComparing && CompareWithEntry is not null)
+        {
+            PerformComparison();
+        }
+    }
+
     private void ResetCollectionToAll()
     {
         DisplayZipEntries.Clear();
@@ -659,6 +671,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             string originalContent = GetFileContent(SelectedEntry);
             string modifiedContent = GetFileContent(CompareWithEntry);
 
+            // Strip timestamps if enabled
+            if (IgnoreTimestamps)
+            {
+                originalContent = StripTimestamps(originalContent);
+                modifiedContent = StripTimestamps(modifiedContent);
+            }
+
             // Compute diff
             var diffLines = Helpers.DiffHelper.ComputeDiff(originalContent, modifiedContent);
 
@@ -666,14 +685,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             var filteredLines = ComparisonMode switch
             {
                 ComparisonMode.OnlyInOriginal => diffLines.Where(line =>
-                    line.Type == Helpers.DiffLineType.Deleted ||
-                    line.Type == Helpers.DiffLineType.Modified).ToList(),
+                    line.Type == Helpers.DiffLineType.Deleted).ToList(),
                 ComparisonMode.OnlyInSelected => diffLines.Where(line =>
-                    line.Type == Helpers.DiffLineType.Added ||
-                    line.Type == Helpers.DiffLineType.Modified).ToList(),
+                    line.Type == Helpers.DiffLineType.Added).ToList(),
                 ComparisonMode.InBothFiles => diffLines.Where(line =>
                     line.Type == Helpers.DiffLineType.Unchanged).ToList(),
-                _ => diffLines // ComparisonMode.All shows everything
+                _ => diffLines.Where(line =>
+                    line.Type != Helpers.DiffLineType.Unchanged).ToList() // All shows only differences
             };
 
             // Format for display (using side-by-side view)
@@ -683,6 +701,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             FileContent = $"Error comparing files: {ex.Message}";
         }
+    }
+
+    private string StripTimestamps(string content)
+    {
+        // Remove log timestamps like "[2025-10-31 10:06:37.315559] [p-11988] [t-11992]"
+        // Pattern: [date time] [p-number] [t-number] at the start of lines
+        var pattern = @"^\[\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\]\s*(?:\[p-\d+\]\s*)?(?:\[t-\d+\]\s*)?";
+        var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            lines[i] = Regex.Replace(lines[i], pattern, "");
+        }
+
+        return string.Join(Environment.NewLine, lines);
     }
 
     private string GetFileContent(ZipEntryItem entry)

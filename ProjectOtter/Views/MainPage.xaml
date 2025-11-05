@@ -321,7 +321,8 @@
                         Grid.Column="0"
                         Margin="12"
                         VerticalAlignment="Top"
-                        Background="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        Closing="CompareInfoBar_Closing"
                         IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
                         Message="Click a file to compare with the currently selected file"
                         Severity="Informational">
@@ -330,7 +331,7 @@
                                 <TextBlock Text="Show:" FontWeight="SemiBold" />
                                 <RadioButtons SelectedIndex="0">
                                     <RadioButton
-                                        Content="All lines"
+                                        Content="All differences"
                                         IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All}" />
                                     <RadioButton
                                         Content="Lines only in original file"
@@ -342,6 +343,10 @@
                                         Content="Lines in both files"
                                         IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=InBothFiles}" />
                                 </RadioButtons>
+                                <CheckBox
+                                    Content="Ignore log timestamps"
+                                    IsChecked="{x:Bind ViewModel.IgnoreTimestamps, Mode=TwoWay}"
+                                    ToolTipService.ToolTip="Strip timestamps like [2025-10-31 10:06:37.315559] [p-11988] [t-11992] from lines before comparing" />
                             </StackPanel>
                         </InfoBar.Content>
                     </InfoBar>
