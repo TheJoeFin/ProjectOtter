@@ -12,15 +12,6 @@ public sealed partial class MainPage : Page
     {
         ViewModel = App.GetService<MainViewModel>();
         InitializeComponent();
-        ContentsListView.ItemClick += ContentsListView_ItemClick;
-    }
-
-    private void ContentsListView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-        if (e.ClickedItem is ZipEntryItem clickedItem)
-        {
-            ViewModel.SelectCompareFileCommand.Execute(clickedItem);
-        }
     }
 
     private void CompareInfoBar_Closing(InfoBar sender, InfoBarClosingEventArgs args)

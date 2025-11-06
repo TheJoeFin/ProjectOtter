@@ -284,72 +284,67 @@
                             <TextBlock Text="Searching file contents..." />
                         </ToolTipService.ToolTip>
                     </ProgressRing>
-                    <ScrollViewer Grid.Row="2" Grid.Column="0">
-                        <ListView
-                            x:Name="ContentsListView"
-                            Background="{ThemeResource CardBackgroundFillColorSecondary}"
-                            IsItemClickEnabled="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
-                            ItemsSource="{x:Bind ViewModel.DisplayZipEntries}"
-                            SelectedItem="{x:Bind ViewModel.SelectedEntry, Mode=TwoWay}">
-                            <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="models:ZipEntryItem">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock
-                                            x:Name="FullNameText"
-                                            Grid.Column="0"
-                                            Margin="0,0,6,0"
-                                            Text="{x:Bind Name}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <TextBlock
-                                            x:Name="LengthText"
-                                            Grid.Column="1"
-                                            Text="{x:Bind InitialLength}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </ScrollViewer>
+                    <Grid Grid.Row="2" Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-                    <InfoBar
-                        x:Name="CompareInfoBar"
-                        Title="Compare Mode"
-                        Grid.Row="2"
-                        Grid.Column="0"
-                        Margin="12"
-                        VerticalAlignment="Top"
-                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        Closing="CompareInfoBar_Closing"
-                        IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
-                        Message="Click a file to compare with the currently selected file"
-                        Severity="Informational">
-                        <InfoBar.Content>
-                            <StackPanel Orientation="Vertical" Spacing="8" Margin="0,8,0,0">
-                                <TextBlock Text="Show:" FontWeight="SemiBold" />
-                                <RadioButtons SelectedIndex="0">
-                                    <RadioButton
-                                        Content="All differences"
-                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All}" />
-                                    <RadioButton
-                                        Content="Lines only in original file"
-                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInOriginal}" />
-                                    <RadioButton
-                                        Content="Lines only in selected file"
-                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInSelected}" />
-                                    <RadioButton
-                                        Content="Lines in both files"
-                                        IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=InBothFiles}" />
-                                </RadioButtons>
-                                <CheckBox
-                                    Content="Ignore log timestamps"
-                                    IsChecked="{x:Bind ViewModel.IgnoreTimestamps, Mode=TwoWay}"
-                                    ToolTipService.ToolTip="Strip timestamps like [2025-10-31 10:06:37.315559] [p-11988] [t-11992] from lines before comparing" />
-                            </StackPanel>
-                        </InfoBar.Content>
-                    </InfoBar>
+                        <InfoBar
+                            x:Name="CompareInfoBar"
+                            Title="Compare Mode"
+                            Grid.Row="0"
+                            VerticalAlignment="Top"
+                            Background="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}"
+                            Closing="CompareInfoBar_Closing"
+                            IsOpen="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
+                            Message="Click a file to compare with the currently selected file"
+                            Severity="Informational">
+                            <InfoBar.Content>
+                                <StackPanel Orientation="Vertical" Spacing="8">
+                                    <RadioButtons SelectedIndex="0">
+                                        <RadioButton Content="All differences" IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=All}" />
+                                        <RadioButton Content="Lines only in original file" IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInOriginal}" />
+                                        <RadioButton Content="Lines only in selected file" IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=OnlyInSelected}" />
+                                        <RadioButton Content="Lines in both files" IsChecked="{x:Bind ViewModel.ComparisonMode, Mode=TwoWay, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=InBothFiles}" />
+                                    </RadioButtons>
+                                    <CheckBox
+                                        Content="Ignore log timestamps"
+                                        IsChecked="{x:Bind ViewModel.IgnoreTimestamps, Mode=TwoWay}"
+                                        ToolTipService.ToolTip="Strip timestamps like [2025-10-31 10:06:37.315559] [p-11988] [t-11992] from lines before comparing" />
+                                </StackPanel>
+                            </InfoBar.Content>
+                        </InfoBar>
+                        <ScrollViewer Grid.Row="1" Grid.Column="0">
+                            <ListView
+                                x:Name="ContentsListView"
+                                Background="{ThemeResource CardBackgroundFillColorSecondary}"
+                                IsItemClickEnabled="{x:Bind ViewModel.IsComparing, Mode=OneWay}"
+                                ItemsSource="{x:Bind ViewModel.DisplayZipEntries}"
+                                SelectedItem="{x:Bind ViewModel.SelectedEntry, Mode=TwoWay}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ZipEntryItem">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                x:Name="FullNameText"
+                                                Grid.Column="0"
+                                                Margin="0,0,6,0"
+                                                Text="{x:Bind Name}"
+                                                TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                x:Name="LengthText"
+                                                Grid.Column="1"
+                                                Text="{x:Bind InitialLength}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </ScrollViewer>
+                    </Grid>
 
                     <RelativePanel
                         Grid.Row="1"

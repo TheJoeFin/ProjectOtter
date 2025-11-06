@@ -512,7 +512,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         // Skip loading content when in compare mode - the diff will be shown instead
         if (IsComparing)
+        {
+            PerformComparison();
             return;
+        }
 
         if (value is null)
         {
@@ -629,7 +632,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
 
         IsComparing = true;
-        CompareWithEntry = null;
+        CompareWithEntry = SelectedEntry;
         CompareWithFileName = string.Empty;
     }
 
@@ -668,8 +671,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         try
         {
             // Get content for both files
-            string originalContent = GetFileContent(SelectedEntry);
-            string modifiedContent = GetFileContent(CompareWithEntry);
+            string originalContent = GetFileContent(CompareWithEntry);
+            string modifiedContent = GetFileContent(SelectedEntry);
 
             // Strip timestamps if enabled
             if (IgnoreTimestamps)
